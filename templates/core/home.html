@@ -1,0 +1,88 @@
+{% load django_bootstrap5 %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    {% bootstrap_css %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>Sistema Escolar
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'users:logout' %}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h3><i class="fas fa-home me-2"></i>{{ title }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <h4>¡Hola {{ user.get_full_name }}!</h4>
+                        <p class="lead">Bienvenido al Sistema de Gestión Escolar.</p>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h5>Información del Usuario</h5>
+                                <ul class="list-group">
+                                    <li class="list-group-item">
+                                        <strong>Email:</strong> {{ user.email }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>DNI:</strong> {{ user.dni }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Rol:</strong> 
+                                        <span class="badge bg-primary">
+                                            <i class="{{ user.get_role_display_icon }} me-1"></i>
+                                            {{ user.get_role_display }}
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Sistema</h5>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    El sistema está funcionando correctamente. 
+                                    La autenticación con email y DNI ha sido exitosa.
+                                </div>
+                                
+                                {% if not user.must_change_password %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        Tu contraseña está actualizada.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% bootstrap_javascript %}
+</body>
+</html>

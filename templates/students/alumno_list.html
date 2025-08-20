@@ -1,0 +1,428 @@
+{% extends 'students/base_students.html' %}
+{% load static %}
+
+{% block page_title %}Lista de Alumnos{% endblock %}
+{% block page_description %}Gestión integral de estudiantes matriculados{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/select/1.7.0/css/select.bootstrap5.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block sidebar_content %}
+    {{ block.super }}
+    
+    <!-- Filtros avanzados -->
+    <form method="get" id="filter-form" class="mt-3">
+        <div class="mb-3">
+            <label class="form-label small fw-bold">Estado</label>
+            {{ filter.form.activo }}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label small fw-bold">Carrera</label>
+            {{ filter.form.carrera }}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label small fw-bold">Año de Ingreso</label>
+            {{ filter.form.año_ingreso }}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label small fw-bold">Apellido inicia con</label>
+            {{ filter.form.apellido_inicial }}
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="fas fa-filter me-1"></i>Aplicar Filtros
+            </button>
+            <a href="{% url 'students:alumno_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-times me-1"></i>Limpiar
+            </a>
+        </div>
+    </form>
+    
+    <!-- Exportación rápida -->
+    <div class="mt-4">
+        <label class="form-label small fw-bold">Exportar Resultados</label>
+        <div class="d-grid gap-1">
+            <a href="{% url 'students:alumno_export_csv' %}?{{ request.GET.urlencode }}" 
+               class="btn btn-outline-success btn-sm">
+                <i class="fas fa-file-csv me-1"></i>CSV
+            </a>
+            <a href="{% url 'students:alumno_export_excel' %}?{{ request.GET.urlencode }}" 
+               class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-file-excel me-1"></i>Excel
+            </a>
+            <a href="{% url 'students:alumno_export_pdf' %}?{{ request.GET.urlencode }}" 
+               class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-file-pdf me-1"></i>PDF
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block main_content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>
+            Lista de Alumnos
+            {% if filter.qs.count %}
+                <span class="badge bg-primary ms-2">{{ filter.qs.count }}</span>
+            {% endif %}
+        </h5>
+        
+        <!-- Acciones masivas -->
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                    data-bs-toggle="dropdown" id="bulk-actions" disabled>
+                <i class="fas fa-cogs me-1"></i>Acciones Masivas
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item" href="#" onclick="bulkAction('activate')">
+                        <i class="fas fa-check-circle text-success me-2"></i>Activar seleccionados
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#" onclick="bulkAction('deactivate')">
+                        <i class="fas fa-times-circle text-warning me-2"></i>Desactivar seleccionados
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item text-danger" href="#" onclick="bulkAction('delete')">
+                        <i class="fas fa-trash me-2"></i>Eliminar seleccionados
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="card-body p-0">
+        {% if filter.qs.exists %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="alumnos-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center" style="width: 40px;">
+                                <input type="checkbox" class="form-check-input" id="select-all">
+                            </th>
+                            <th>Legajo</th>
+                            <th>Alumno</th>
+                            <th>DNI</th>
+                            <th>Email</th>
+                            <th>Carrera</th>
+                            <th>Ingreso</th>
+                            <th>Estado</th>
+                            <th class="text-center" style="width: 120px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alumno in filter.qs %}
+                        <tr>
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input row-select" 
+                                       value="{{ alumno.pk }}">
+                            </td>
+                            <td>
+                                <code class="text-primary">{{ alumno.legajo }}</code>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
+                                        <div class="avatar-initial bg-primary text-white rounded-circle">
+                                            {{ alumno.first_name.0|upper }}{{ alumno.last_name.0|upper }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">{{ alumno.nombre_completo }}</div>
+                                        <small class="text-muted">
+                                            Desde {{ alumno.fecha_ingreso|date:"M Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-monospace">{{ alumno.dni }}</span>
+                            </td>
+                            <td>
+                                <a href="mailto:{{ alumno.email }}" class="text-decoration-none">
+                                    {{ alumno.email }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if alumno.carrera %}
+                                    <span class="badge bg-info">{{ alumno.carrera.codigo }}</span>
+                                    <small class="d-block text-muted">{{ alumno.carrera.nombre }}</small>
+                                {% else %}
+                                    <span class="text-muted">Sin carrera</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span>{{ alumno.fecha_ingreso|date:"d/m/Y" }}</span>
+                                <small class="d-block text-muted">
+                                    {{ alumno.años_institucion }} año{{ alumno.años_institucion|pluralize }}
+                                </small>
+                            </td>
+                            <td>
+                                {% if alumno.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'students:alumno_detail' alumno.pk %}" 
+                                       class="btn btn-outline-primary btn-sm" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'students:alumno_update' alumno.pk %}" 
+                                       class="btn btn-outline-warning btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-outline-danger btn-sm" 
+                                            title="Eliminar"
+                                            onclick="deleteAlumno({{ alumno.pk }}, '{{ alumno.nombre_completo|escapejs }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación -->
+            {% if is_paginated %}
+            <div class="card-footer bg-light">
+                <nav aria-label="Paginación de alumnos">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page=1">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                
+                <div class="text-center mt-2">
+                    <small class="text-muted">
+                        Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} 
+                        de {{ page_obj.paginator.count }} alumnos
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+            
+        {% else %}
+            <!-- Estado vacío -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-user-graduate fa-4x text-muted"></i>
+                </div>
+                <h4 class="text-muted">No se encontraron alumnos</h4>
+                <p class="text-muted mb-4">
+                    {% if request.GET %}
+                        No hay alumnos que coincidan con los filtros aplicados.
+                    {% else %}
+                        Aún no hay alumnos registrados en el sistema.
+                    {% endif %}
+                </p>
+                <div>
+                    {% if request.GET %}
+                        <a href="{% url 'students:alumno_list' %}" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-times me-1"></i>Limpiar Filtros
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'students:alumno_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Registrar Primer Alumno
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+    {{ block.super }}
+    
+    <!-- Modal para eliminación de alumno -->
+    <div class="modal fade" id="deleteAlumnoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Eliminar Alumno
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro de eliminar al alumno <strong id="delete-alumno-name"></strong>?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Esta acción no se puede deshacer. Se perderán todos los datos del alumno.
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form method="post" id="delete-form" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i>Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+// Selección múltiple
+document.getElementById('select-all').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.row-select');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+    updateBulkActions();
+});
+
+document.querySelectorAll('.row-select').forEach(checkbox => {
+    checkbox.addEventListener('change', updateBulkActions);
+});
+
+function updateBulkActions() {
+    const selected = document.querySelectorAll('.row-select:checked');
+    const bulkButton = document.getElementById('bulk-actions');
+    bulkButton.disabled = selected.length === 0;
+}
+
+// Eliminación individual
+function deleteAlumno(id, name) {
+    document.getElementById('delete-alumno-name').textContent = name;
+    document.getElementById('delete-form').action = `/students/${id}/eliminar/`;
+    new bootstrap.Modal(document.getElementById('deleteAlumnoModal')).show();
+}
+
+// Acciones masivas
+function bulkAction(action) {
+    const selected = Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.value);
+    
+    if (selected.length === 0) {
+        alert('Seleccione al menos un alumno');
+        return;
+    }
+    
+    let url, message;
+    
+    switch(action) {
+        case 'activate':
+            url = '{% url "students:alumno_activar_masivo" %}';
+            message = `¿Activar ${selected.length} alumno(s) seleccionado(s)?`;
+            break;
+        case 'deactivate':
+            url = '{% url "students:alumno_desactivar_masivo" %}';
+            message = `¿Desactivar ${selected.length} alumno(s) seleccionado(s)?`;
+            break;
+        case 'delete':
+            url = '{% url "students:alumno_eliminar_masivo" %}';
+            message = `¿ELIMINAR ${selected.length} alumno(s) seleccionado(s)?\n\nEsta acción no se puede deshacer.`;
+            break;
+    }
+    
+    if (confirm(message)) {
+        // Crear formulario dinámico
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        
+        // CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // IDs seleccionados
+        selected.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'selected_ids';
+            input.value = id;
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Búsqueda rápida
+document.getElementById('quick-search').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#alumnos-table tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Auto-submit filtros
+document.querySelectorAll('#filter-form select').forEach(select => {
+    select.addEventListener('change', function() {
+        document.getElementById('filter-form').submit();
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends 'escuelas/base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block escuelas_content %}
+    <div class="row">
+        <!-- Filtros -->
+        <div class="col-md-3">
+            <div class="filter-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-filter me-2"></i>Filtros
+                </h5>
+                
+                <form method="get" class="mb-3">
+                    {{ filter.form.as_p }}
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                    <a href="{% url 'escuelas:materia_list' %}" class="btn btn-outline-secondary w-100 mt-2">
+                        <i class="fas fa-times me-1"></i>Limpiar
+                    </a>
+                </form>
+                
+                <!-- Estadísticas -->
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 class="text-primary">{{ total_materias }}</h3>
+                        <p class="mb-0">Total de Materias</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lista principal -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-book me-2"></i>{{ titulo }}
+                    </h5>
+                    {% if user.role == 'ADMIN' %}
+                        <a href="{% url 'escuelas:materia_create' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Nueva Materia
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body">
+                    {% if materias %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Materia</th>
+                                        <th>Carrera</th>
+                                        <th>Año/Cuatr.</th>
+                                        <th>Horas</th>
+                                        <th>Cupo</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for materia in materias %}
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong>
+                                                        <a href="{% url 'escuelas:materia_detail' materia.pk %}" 
+                                                           class="text-decoration-none">
+                                                            {{ materia.nombre }}
+                                                        </a>
+                                                    </strong>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <code>{{ materia.codigo }}</code>
+                                                    </small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'escuelas:carrera_detail' materia.carrera.pk %}" 
+                                                   class="text-decoration-none">
+                                                    {{ materia.carrera.nombre }}
+                                                </a>
+                                                <br>
+                                                <small class="text-muted">{{ materia.carrera.codigo }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-secondary">{{ materia.año_carrera }}° Año</span>
+                                                <br>
+                                                <small class="text-muted">{{ materia.cuatrimestre }}° Cuatr.</small>
+                                            </td>
+                                            <td>
+                                                <strong>{{ materia.horas_semanales }}h</strong>
+                                                <br>
+                                                <small class="text-muted">por semana</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-info">{{ materia.cupo_maximo }}</span>
+                                                <br>
+                                                <small class="text-muted">estudiantes</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if materia.activa %}badge-success{% else %}badge-danger{% endif %}">
+                                                    {% if materia.activa %}Activa{% else %}Inactiva{% endif %}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="{% url 'escuelas:materia_detail' materia.pk %}" 
+                                                       class="btn btn-outline-primary" title="Ver detalle">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    {% if user.role == 'ADMIN' %}
+                                                        <a href="{% url 'escuelas:materia_update' materia.pk %}" 
+                                                           class="btn btn-outline-warning" title="Editar">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <a href="{% url 'escuelas:materia_delete' materia.pk %}" 
+                                                           class="btn btn-outline-danger" title="Eliminar">
+                                                            <i class="fas fa-trash"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Paginación -->
+                        {% if is_paginated %}
+                            <div class="d-flex justify-content-center mt-3">
+                                <nav aria-label="Paginación de materias">
+                                    <ul class="pagination">
+                                        {% if page_obj.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                    &laquo; Primera
+                                                </a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                    Anterior
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                        
+                                        <li class="page-item active">
+                                            <span class="page-link">
+                                                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                            </span>
+                                        </li>
+                                        
+                                        {% if page_obj.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                    Siguiente
+                                                </a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                    Última &raquo;
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">No se encontraron materias</h4>
+                            <p class="text-muted">
+                                {% if user.role == 'ADMIN' %}
+                                    <a href="{% url 'escuelas:materia_create' %}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-1"></i>Crear la primera materia
+                                    </a>
+                                {% else %}
+                                    No hay materias disponibles por el momento.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

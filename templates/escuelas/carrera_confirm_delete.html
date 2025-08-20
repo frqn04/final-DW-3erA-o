@@ -1,0 +1,251 @@
+{% extends 'escuelas/base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block escuelas_content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>{{ titulo }}
+                    </h5>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                    </div>
+                    
+                    <!-- Información de la carrera -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Información de la Carrera</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{{ carrera.nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Código:</strong></td>
+                                    <td><code>{{ carrera.codigo }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Duración:</strong></td>
+                                    <td>{{ carrera.duracion_anos }} años</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        <span class="badge {% if carrera.activa %}badge-success{% else %}badge-danger{% endif %}">
+                                            {% if carrera.activa %}Activa{% else %}Inactiva{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Estadísticas</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Materias asociadas:</strong></td>
+                                    <td>
+                                        <span class="badge {% if materias_count > 0 %}badge-danger{% else %}badge-success{% endif %}">
+                                            {{ materias_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha de creación:</strong></td>
+                                    <td>{{ carrera.fecha_creacion|date:"d/m/Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Última actualización:</strong></td>
+                                    <td>{{ carrera.fecha_actualizacion|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Validación de materias -->
+                    {% if materias_count > 0 %}
+                        <div class="alert alert-danger" role="alert">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-ban me-2"></i>No se puede eliminar esta carrera
+                            </h6>
+                            <p class="mb-0">
+                                La carrera tiene <strong>{{ materias_count }} materia(s)</strong> asociada(s). 
+                                Debe eliminar o reubicar todas las materias antes de poder eliminar la carrera.
+                            </p>
+                        </div>
+                        
+                        <!-- Lista de materias asociadas -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-book me-2"></i>Materias que impiden la eliminación
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Materia</th>
+                                                <th>Código</th>
+                                                <th>Año</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for materia in materias %}
+                                                <tr>
+                                                    <td>{{ materia.nombre }}</td>
+                                                    <td><code>{{ materia.codigo }}</code></td>
+                                                    <td>{{ materia.año_carrera }}°</td>
+                                                    <td>
+                                                        <span class="badge {% if materia.activa %}badge-success{% else %}badge-danger{% endif %}">
+                                                            {% if materia.activa %}Activa{% else %}Inactiva{% endif %}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group btn-group-sm" role="group">
+                                                            <a href="{% url 'escuelas:materia_detail' materia.pk %}" 
+                                                               class="btn btn-outline-primary" title="Ver">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
+                                                            <a href="{% url 'escuelas:materia_update' materia.pk %}" 
+                                                               class="btn btn-outline-warning" title="Editar">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="{% url 'escuelas:materia_delete' materia.pk %}" 
+                                                               class="btn btn-outline-danger" title="Eliminar">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            {% if materias_count > 5 %}
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-muted">
+                                                        ... y {{ materias_count|add:"-5" }} materia(s) más
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botones cuando no se puede eliminar -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'escuelas:carrera_detail' carrera.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Volver al Detalle
+                            </a>
+                            <a href="{% url 'escuelas:materia_list' %}?carrera={{ carrera.pk }}" class="btn btn-primary">
+                                <i class="fas fa-book me-1"></i>Gestionar Materias
+                            </a>
+                        </div>
+                    {% else %}
+                        <!-- Formulario de confirmación cuando SÍ se puede eliminar -->
+                        <div class="alert alert-success" role="alert">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-check-circle me-2"></i>Carrera lista para eliminar
+                            </h6>
+                            <p class="mb-0">
+                                Esta carrera no tiene materias asociadas y puede ser eliminada de forma segura.
+                            </p>
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="confirm-delete" required>
+                                <label class="form-check-label" for="confirm-delete">
+                                    Confirmo que deseo eliminar permanentemente la carrera "{{ carrera.nombre }}"
+                                </label>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'escuelas:carrera_detail' carrera.pk %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-danger" id="delete-btn" disabled>
+                                    <i class="fas fa-trash me-1"></i>Eliminar Carrera
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel de información -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Información Importante
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>¿Qué sucede al eliminar?</h6>
+                        <ul class="small text-muted">
+                            <li>La carrera se elimina permanentemente</li>
+                            <li>No se puede recuperar posteriormente</li>
+                            <li>Debe estar libre de materias asociadas</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Alternativas</h6>
+                        <ul class="small text-muted">
+                            <li>Marcar como inactiva en lugar de eliminar</li>
+                            <li>Reubicar materias a otra carrera</li>
+                            <li>Exportar datos antes de eliminar</li>
+                        </ul>
+                    </div>
+                    
+                    {% if materias_count > 0 %}
+                        <div class="alert alert-warning alert-sm">
+                            <small>
+                                <strong>Sugerencia:</strong> Considera hacer la carrera inactiva 
+                                en lugar de eliminarla para preservar el historial académico.
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmCheckbox = document.getElementById('confirm-delete');
+            const deleteBtn = document.getElementById('delete-btn');
+            
+            if (confirmCheckbox && deleteBtn) {
+                confirmCheckbox.addEventListener('change', function() {
+                    deleteBtn.disabled = !this.checked;
+                    if (this.checked) {
+                        deleteBtn.classList.add('btn-danger');
+                        deleteBtn.classList.remove('btn-secondary');
+                    } else {
+                        deleteBtn.classList.remove('btn-danger');
+                        deleteBtn.classList.add('btn-secondary');
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

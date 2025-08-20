@@ -1,0 +1,494 @@
+/* 
+ * Estilos personalizados para la aplicación Students
+ * Sistema integral de gestión de alumnos
+ */
+
+/* === VARIABLES GLOBALES === */
+:root {
+    --student-primary: #0d6efd;
+    --student-success: #198754;
+    --student-warning: #ffc107;
+    --student-danger: #dc3545;
+    --student-info: #0dcaf0;
+    --student-light: #f8f9fa;
+    --student-dark: #212529;
+    --student-border-radius: 0.5rem;
+    --student-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --student-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+}
+
+/* === COMPONENTES GENERALES === */
+
+/* Avatar circular para iniciales */
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+.avatar-sm {
+    width: 2rem;
+    height: 2rem;
+}
+
+.avatar-md {
+    width: 3rem;
+    height: 3rem;
+}
+
+.avatar-lg {
+    width: 4rem;
+    height: 4rem;
+}
+
+.avatar-initial {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Badges mejorados */
+.badge-soft {
+    color: var(--bs-body-color);
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.2);
+}
+
+.badge-soft-success {
+    color: var(--bs-success);
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+    border: 1px solid rgba(var(--bs-success-rgb), 0.2);
+}
+
+.badge-soft-warning {
+    color: var(--bs-warning);
+    background-color: rgba(var(--bs-warning-rgb), 0.1);
+    border: 1px solid rgba(var(--bs-warning-rgb), 0.2);
+}
+
+.badge-soft-danger {
+    color: var(--bs-danger);
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+    border: 1px solid rgba(var(--bs-danger-rgb), 0.2);
+}
+
+.badge-soft-info {
+    color: var(--bs-info);
+    background-color: rgba(var(--bs-info-rgb), 0.1);
+    border: 1px solid rgba(var(--bs-info-rgb), 0.2);
+}
+
+/* === FORMULARIOS === */
+
+/* Campos de formulario mejorados */
+.form-control.required {
+    border-left: 3px solid var(--student-primary);
+}
+
+.form-control:focus.required {
+    border-left-color: var(--student-success);
+    box-shadow: inset 3px 0 0 var(--student-success), 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.form-control.is-invalid {
+    border-left-color: var(--student-danger);
+}
+
+/* Indicadores de validación en tiempo real */
+.validation-indicator {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2em;
+    z-index: 10;
+}
+
+.validation-indicator.valid {
+    color: var(--student-success);
+}
+
+.validation-indicator.invalid {
+    color: var(--student-danger);
+}
+
+.validation-indicator.checking {
+    color: var(--student-warning);
+    animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
+/* Contador de caracteres */
+.char-counter {
+    font-size: 0.75rem;
+    color: var(--bs-secondary);
+    text-align: right;
+}
+
+.char-counter.warning {
+    color: var(--student-warning);
+    font-weight: 600;
+}
+
+.char-counter.danger {
+    color: var(--student-danger);
+    font-weight: 600;
+    animation: pulse 2s ease-in-out infinite alternate;
+}
+
+/* === TABLAS === */
+
+/* Tabla de alumnos mejorada */
+.table-students {
+    --bs-table-striped-bg: rgba(var(--bs-primary-rgb), 0.02);
+}
+
+.table-students th {
+    border-top: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: var(--bs-secondary);
+    padding: 1rem 0.75rem;
+}
+
+.table-students td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+}
+
+.table-students .row-selected {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+    border-left: 3px solid var(--student-primary);
+}
+
+/* Hover efectos para filas */
+.table-students tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table-students tbody tr:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.03);
+    transform: translateX(2px);
+    box-shadow: var(--student-shadow);
+}
+
+/* === FILTROS Y BÚSQUEDA === */
+
+/* Panel de filtros */
+.filters-panel {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: var(--student-border-radius);
+    border: 1px solid rgba(var(--bs-border-color), 0.5);
+}
+
+.filters-panel .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    color: var(--bs-secondary);
+}
+
+.filters-panel .form-control,
+.filters-panel .form-select {
+    border: 1px solid rgba(var(--bs-border-color), 0.8);
+    font-size: 0.875rem;
+}
+
+.filters-panel .btn {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Búsqueda rápida */
+.quick-search {
+    position: relative;
+}
+
+.quick-search .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--bs-secondary);
+    z-index: 10;
+}
+
+.quick-search .form-control {
+    padding-left: 2.5rem;
+}
+
+/* === CARDS Y ESTADÍSTICAS === */
+
+/* Cards de estadísticas */
+.stat-card {
+    border-radius: var(--student-border-radius);
+    border: 1px solid rgba(var(--bs-border-color), 0.125);
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,249,250,0.9) 100%);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--student-shadow-lg);
+}
+
+.stat-card .stat-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-card .stat-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+/* === BOTONES Y ACCIONES === */
+
+/* Botones de acción mejorados */
+.btn-action {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-action::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+.btn-action:hover::before {
+    width: 100%;
+    height: 100%;
+}
+
+/* Grupo de botones de acción */
+.action-buttons .btn {
+    margin: 0 0.125rem;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* === MODALES === */
+
+/* Modales mejorados */
+.modal-content {
+    border: none;
+    border-radius: var(--student-border-radius);
+    box-shadow: var(--student-shadow-lg);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(var(--bs-border-color), 0.2);
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(var(--bs-border-color), 0.2);
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+/* === LOADING Y SPINNERS === */
+
+/* Spinner personalizado */
+.custom-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 0.25em solid rgba(var(--bs-primary-rgb), 0.25);
+    border-top-color: var(--student-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+}
+
+/* === RESPONSIVE === */
+
+/* Tablets y dispositivos medianos */
+@media (max-width: 991.98px) {
+    .stat-card .stat-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.25rem;
+    }
+    
+    .stat-card .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .table-students {
+        font-size: 0.875rem;
+    }
+    
+    .action-buttons .btn {
+        min-width: 2rem;
+        height: 2rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Móviles */
+@media (max-width: 767.98px) {
+    .filters-panel {
+        margin-bottom: 1rem;
+    }
+    
+    .stat-card {
+        margin-bottom: 0.75rem;
+    }
+    
+    .table-responsive {
+        border-radius: var(--student-border-radius);
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .btn-group-vertical .btn + .btn {
+        margin-top: -1px;
+        margin-left: 0;
+    }
+}
+
+/* === ANIMACIONES === */
+
+/* Animación de entrada */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-slide-in-up {
+    animation: slideInUp 0.4s ease-out;
+}
+
+/* Pulse para elementos importantes */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.animate-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* === UTILIDADES === */
+
+/* Texto monospace para códigos */
+.text-monospace {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Separadores sutiles */
+.divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--bs-border-color) 50%, transparent 100%);
+    margin: 1.5rem 0;
+}
+
+/* Estados de elementos */
+.element-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.element-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.element-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1rem;
+    height: 1rem;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+    border: 2px solid var(--bs-border-color);
+    border-top-color: var(--student-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* === ACCESIBILIDAD === */
+
+/* Focus visible mejorado */
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+    outline: 2px solid var(--student-primary);
+    outline-offset: 2px;
+}
+
+/* Indicador de elementos requeridos */
+.required-indicator::after {
+    content: " *";
+    color: var(--student-danger);
+    font-weight: bold;
+}
+
+/* Alto contraste para textos importantes */
+.high-contrast {
+    color: var(--student-dark) !important;
+    font-weight: 600;
+}
+
+/* === MODO OSCURO (Opcional) === */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --student-light: #212529;
+        --student-dark: #f8f9fa;
+    }
+}

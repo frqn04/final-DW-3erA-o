@@ -8,7 +8,10 @@ de la aplicación users, específicamente para el modelo User personalizado.
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
-from .models import User
+from django.utils import timezone
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+from .models import User, UserActivityLog
 
 
 @admin.register(User)
@@ -25,23 +28,27 @@ class CustomUserAdmin(UserAdmin):
         'email', 
         'get_full_name', 
         'dni', 
-        'role_badge', 
+        'role_badge',
+        'status_badge',
         'is_active', 
         'must_change_password',
+        'failed_login_attempts',
         'last_login',
         'date_joined'
     )
     
     list_filter = (
-        'role', 
+        'role',
+        'status', 
         'is_active', 
         'is_staff', 
         'must_change_password',
         'date_joined',
-        'last_login'
+        'last_login',
+        'password_changed_at',
     )
     
-    search_fields = ('email', 'first_name', 'last_name', 'dni')
+    search_fields = ('email', 'first_name', 'last_name', 'dni', 'phone')
     
     ordering = ('last_name', 'first_name')
     
@@ -51,10 +58,19 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('email', 'password')
         }),
         ('Información Personal', {
-            'fields': ('first_name', 'last_name', 'dni')
+            'fields': ('first_name', 'last_name', 'dni', 'phone', 'address', 'birth_date')
         }),
         ('Configuración del Usuario', {
-            'fields': ('role', 'must_change_password'),
+            'fields': ('role', 'status', 'must_change_password'),
+            'classes': ('collapse',)
+        }),
+        ('Información de Seguridad', {
+            'fields': (
+                'failed_login_attempts', 
+                'last_failed_login',
+                'password_changed_at',
+                'last_password_reset'
+            ),
             'classes': ('collapse',)
         }),
         ('Permisos', {
@@ -67,8 +83,8 @@ class CustomUserAdmin(UserAdmin):
             ),
             'classes': ('collapse',)
         }),
-        ('Fechas Importantes', {
-            'fields': ('last_login', 'date_joined'),
+        ('Auditoría', {
+            'fields': ('created_by', 'last_login', 'date_joined', 'uuid'),
             'classes': ('collapse',)
         }),
     )
@@ -81,15 +97,23 @@ class CustomUserAdmin(UserAdmin):
         }),
         ('Información Personal', {
             'classes': ('wide',),
-            'fields': ('first_name', 'last_name', 'dni'),
+            'fields': ('first_name', 'last_name', 'dni', 'phone', 'birth_date'),
         }),
         ('Configuración del Usuario', {
             'classes': ('wide',),
-            'fields': ('role', 'must_change_password'),
+            'fields': ('role', 'status', 'must_change_password'),
         }),
     )
     
-    readonly_fields = ('last_login', 'date_joined')
+    readonly_fields = (
+        'uuid', 
+        'last_login', 
+        'date_joined', 
+        'password_changed_at',
+        'last_password_reset',
+        'failed_login_attempts',
+        'last_failed_login'
+    )
     
     # Configuración de filtros
     list_per_page = 25
@@ -107,7 +131,9 @@ class CustomUserAdmin(UserAdmin):
         """
         colors = {
             User.UserRole.ADMIN: 'danger',
+            User.UserRole.PROFESOR: 'primary',
             User.UserRole.ALUMNO: 'success',
+            User.UserRole.PADRE: 'info',
             User.UserRole.INVITADO: 'secondary',
         }
         
@@ -126,6 +152,38 @@ class CustomUserAdmin(UserAdmin):
     role_badge.short_description = 'Rol'
     role_badge.admin_order_field = 'role'
     
+    def status_badge(self, obj):
+        """
+        Muestra el estado del usuario como un badge colorizado.
+        
+        Args:
+            obj: Instancia del modelo User
+            
+        Returns:
+            str: HTML con el badge del estado
+        """
+        colors = {
+            User.UserStatus.ACTIVE: 'success',
+            User.UserStatus.INACTIVE: 'secondary',
+            User.UserStatus.SUSPENDED: 'danger',
+            User.UserStatus.PENDING: 'warning',
+        }
+        
+        color = colors.get(obj.status, 'secondary')
+        icon = obj.get_status_display_icon()
+        
+        return format_html(
+            '<span class="badge badge-{} text-white">'
+            '<i class="{}"></i> {}'
+            '</span>',
+            color,
+            icon,
+            obj.get_status_display()
+        )
+    
+    status_badge.short_description = 'Estado'
+    status_badge.admin_order_field = 'status'
+    
     def get_full_name(self, obj):
         """
         Obtiene el nombre completo del usuario para mostrar en la lista.
@@ -136,17 +194,28 @@ class CustomUserAdmin(UserAdmin):
         Returns:
             str: Nombre completo del usuario
         """
-        return obj.get_full_name()
+        full_name = obj.get_full_name()
+        if obj.get_age():
+            return f"{full_name} ({obj.get_age()} años)"
+        return full_name
     
     get_full_name.short_description = 'Nombre Completo'
     get_full_name.admin_order_field = 'first_name'
     
     # Acciones personalizadas
-    actions = ['make_active', 'make_inactive', 'force_password_change', 'remove_password_change']
+    actions = [
+        'make_active', 
+        'make_inactive', 
+        'force_password_change', 
+        'remove_password_change',
+        'activate_users',
+        'suspend_users',
+        'reset_failed_attempts'
+    ]
     
     def make_active(self, request, queryset):
         """Activa los usuarios seleccionados."""
-        updated = queryset.update(is_active=True)
+        updated = queryset.update(is_active=True, status=User.UserStatus.ACTIVE)
         self.message_user(
             request, 
             f'{updated} usuario(s) activado(s) correctamente.'
@@ -155,7 +224,7 @@ class CustomUserAdmin(UserAdmin):
     
     def make_inactive(self, request, queryset):
         """Desactiva los usuarios seleccionados."""
-        updated = queryset.update(is_active=False)
+        updated = queryset.update(is_active=False, status=User.UserStatus.INACTIVE)
         self.message_user(
             request, 
             f'{updated} usuario(s) desactivado(s) correctamente.'
@@ -179,3 +248,106 @@ class CustomUserAdmin(UserAdmin):
             f'{updated} usuario(s) ya no necesitan cambiar su contraseña.'
         )
     remove_password_change.short_description = "Remover requisito de cambio de contraseña"
+    
+    def activate_users(self, request, queryset):
+        """Activa usuarios usando el método del modelo."""
+        count = 0
+        for user in queryset:
+            user.activate_user()
+            count += 1
+        self.message_user(
+            request, 
+            f'{count} usuario(s) activado(s) y aprobado(s) correctamente.'
+        )
+    activate_users.short_description = "Activar y aprobar usuarios seleccionados"
+    
+    def suspend_users(self, request, queryset):
+        """Suspende usuarios usando el método del modelo."""
+        count = 0
+        for user in queryset:
+            user.suspend_user("Suspendido desde admin")
+            count += 1
+        self.message_user(
+            request, 
+            f'{count} usuario(s) suspendido(s) correctamente.'
+        )
+    suspend_users.short_description = "Suspender usuarios seleccionados"
+    
+    def reset_failed_attempts(self, request, queryset):
+        """Resetea los intentos fallidos de login."""
+        count = 0
+        for user in queryset:
+            user.reset_failed_login_attempts()
+            count += 1
+        self.message_user(
+            request, 
+            f'Intentos fallidos reseteados para {count} usuario(s).'
+        )
+    reset_failed_attempts.short_description = "Resetear intentos fallidos de login"
+
+
+@admin.register(UserActivityLog)
+class UserActivityLogAdmin(admin.ModelAdmin):
+    """
+    Configuración del admin para el modelo UserActivityLog.
+    """
+    
+    list_display = (
+        'user',
+        'activity_type',
+        'timestamp',
+        'ip_address',
+        'get_user_agent_short'
+    )
+    
+    list_filter = (
+        'activity_type',
+        'timestamp',
+        'user__role',
+    )
+    
+    search_fields = (
+        'user__email',
+        'user__first_name',
+        'user__last_name',
+        'ip_address',
+    )
+    
+    readonly_fields = (
+        'user',
+        'activity_type',
+        'timestamp',
+        'ip_address',
+        'user_agent',
+        'details'
+    )
+    
+    ordering = ('-timestamp',)
+    
+    list_per_page = 50
+    
+    def get_user_agent_short(self, obj):
+        """Devuelve una versión corta del user agent."""
+        if obj.user_agent:
+            return obj.user_agent[:50] + "..." if len(obj.user_agent) > 50 else obj.user_agent
+        return "-"
+    
+    get_user_agent_short.short_description = 'User Agent'
+    
+    def has_add_permission(self, request):
+        """Los logs no se pueden agregar manualmente."""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Los logs no se pueden modificar."""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """Solo los superusuarios pueden eliminar logs."""
+        return request.user.is_superuser
+
+
+# Configuración personalizada del sitio admin
+admin.site.site_header = "Sistema Escolar - Administración"
+admin.site.site_title = "Admin Sistema Escolar"
+admin.site.index_title = "Panel de Administración"

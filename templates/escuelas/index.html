@@ -1,0 +1,148 @@
+{% extends 'escuelas/base.html' %}
+{% load static %}
+
+{% block title %}Panel de Escuelas{% endblock %}
+
+{% block escuelas_content %}
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="stats-card">
+                <h2 class="mb-1">{{ total_carreras }}</h2>
+                <p class="mb-0">Carreras Disponibles</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stats-card">
+                <h2 class="mb-1">{{ total_materias }}</h2>
+                <p class="mb-0">Materias Registradas</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'escuelas:carrera_list' %}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-university d-block mb-1"></i>
+                                Ver Carreras
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'escuelas:materia_list' %}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-book d-block mb-1"></i>
+                                Ver Materias
+                            </a>
+                        </div>
+                        {% if user.role == 'ADMIN' %}
+                            <div class="col-md-3">
+                                <a href="{% url 'escuelas:carrera_create' %}" class="btn btn-primary w-100 mb-2">
+                                    <i class="fas fa-plus d-block mb-1"></i>
+                                    Nueva Carrera
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{% url 'escuelas:materia_create' %}" class="btn btn-primary w-100 mb-2">
+                                    <i class="fas fa-plus d-block mb-1"></i>
+                                    Nueva Materia
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carreras recientes -->
+    {% if carreras_recientes %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-university me-2"></i>Carreras Recientes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            {% for carrera in carreras_recientes %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'escuelas:carrera_detail' carrera.pk %}" 
+                                               class="text-decoration-none">
+                                                {{ carrera.nombre }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">{{ carrera.codigo }}</small>
+                                    </div>
+                                    <span class="badge {% if carrera.activa %}badge-success{% else %}badge-danger{% endif %}">
+                                        {% if carrera.activa %}Activa{% else %}Inactiva{% endif %}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-2">
+                            <a href="{% url 'escuelas:carrera_list' %}" class="btn btn-sm btn-outline-primary">
+                                Ver todas las carreras
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Materias recientes -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-book me-2"></i>Materias Recientes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            {% for materia in materias_recientes %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'escuelas:materia_detail' materia.pk %}" 
+                                               class="text-decoration-none">
+                                                {{ materia.nombre }}
+                                            </a>
+                                        </h6>
+                                        <small>{{ materia.codigo }}</small>
+                                    </div>
+                                    <p class="mb-1">
+                                        <small class="text-muted">
+                                            {{ materia.carrera.nombre }} - {{ materia.año_carrera }}° Año
+                                        </small>
+                                    </p>
+                                    <small>
+                                        <span class="badge {% if materia.activa %}badge-success{% else %}badge-danger{% endif %}">
+                                            {% if materia.activa %}Activa{% else %}Inactiva{% endif %}
+                                        </span>
+                                    </small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-2">
+                            <a href="{% url 'escuelas:materia_list' %}" class="btn btn-sm btn-outline-primary">
+                                Ver todas las materias
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

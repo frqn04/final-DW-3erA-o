@@ -1,0 +1,521 @@
+{% extends 'escuelas/base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        .form-section {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-floating {
+            margin-bottom: 1rem;
+        }
+        
+        .char-counter {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: right;
+        }
+        
+        .char-counter.warning {
+            color: #fd7e14;
+        }
+        
+        .char-counter.danger {
+            color: #dc3545;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .preview-section {
+            background-color: #e8f5e8;
+            border-left: 4px solid #28a745;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0.25rem;
+        }
+        
+        .dependency-info {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .auto-generated {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+{% endblock %}
+
+{% block escuelas_content %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-book me-2"></i>{{ titulo }}
+                    </h5>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" id="materia-form" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Información básica -->
+                        <div class="form-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Información Básica
+                            </h6>
+                            
+                            <div class="row">
+                                <!-- Carrera -->
+                                <div class="col-md-12 mb-3">
+                                    <div class="form-floating">
+                                        {{ form.carrera }}
+                                        <label for="{{ form.carrera.id_for_label }}">{{ form.carrera.label }}</label>
+                                        {% if form.carrera.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.carrera.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div id="carrera-info" class="dependency-info" style="display: none;">
+                                        <i class="fas fa-university me-1"></i>
+                                        <span id="carrera-details"></span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Nombre y Código -->
+                                <div class="col-md-8">
+                                    <div class="form-floating">
+                                        {{ form.nombre }}
+                                        <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+                                        {% if form.nombre.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.nombre.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        {{ form.codigo }}
+                                        <label for="{{ form.codigo.id_for_label }}">{{ form.codigo.label }}</label>
+                                        {% if form.codigo.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.codigo.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div id="codigo-auto" class="dependency-info auto-generated" style="display: none;">
+                                        <i class="fas fa-magic me-1"></i>Código generado automáticamente
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Configuración académica -->
+                        <div class="form-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-graduation-cap me-2"></i>Configuración Académica
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        {{ form.año_carrera }}
+                                        <label for="{{ form.año_carrera.id_for_label }}">{{ form.año_carrera.label }}</label>
+                                        {% if form.año_carrera.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.año_carrera.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        {{ form.cuatrimestre }}
+                                        <label for="{{ form.cuatrimestre.id_for_label }}">{{ form.cuatrimestre.label }}</label>
+                                        {% if form.cuatrimestre.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.cuatrimestre.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        {{ form.horas_semanales }}
+                                        <label for="{{ form.horas_semanales.id_for_label }}">{{ form.horas_semanales.label }}</label>
+                                        {% if form.horas_semanales.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.horas_semanales.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="validation-info" class="dependency-info" style="display: none;">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                <span id="validation-message"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Gestión y estado -->
+                        <div class="form-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-cogs me-2"></i>Gestión y Estado
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form.cupo_maximo }}
+                                        <label for="{{ form.cupo_maximo.id_for_label }}">{{ form.cupo_maximo.label }}</label>
+                                        {% if form.cupo_maximo.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.cupo_maximo.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mt-3">
+                                        {{ form.activa }}
+                                        <label class="form-check-label" for="{{ form.activa.id_for_label }}">
+                                            {{ form.activa.label }}
+                                        </label>
+                                        {% if form.activa.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.activa.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Descripción -->
+                        <div class="form-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-file-text me-2"></i>Descripción
+                            </h6>
+                            
+                            <div class="form-floating">
+                                {{ form.descripcion }}
+                                <label for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
+                                {% if form.descripcion.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.descripcion.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div id="descripcion-counter" class="char-counter">0 / 500 caracteres</div>
+                        </div>
+                        
+                        <!-- Vista previa -->
+                        <div class="preview-section" id="materia-preview" style="display: none;">
+                            <h6 class="text-success mb-2">
+                                <i class="fas fa-eye me-2"></i>Vista Previa
+                            </h6>
+                            <div id="preview-content"></div>
+                        </div>
+                        
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'escuelas:materia_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancelar
+                            </a>
+                            <div>
+                                <button type="button" id="preview-btn" class="btn btn-info me-2">
+                                    <i class="fas fa-eye me-1"></i>Vista Previa
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>{{ accion }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel de ayuda -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>Ayuda
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Carrera</h6>
+                        <small class="text-muted">
+                            Selecciona la carrera a la que pertenece esta materia. El formulario se adaptará según la carrera elegida.
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Año y Cuatrimestre</h6>
+                        <small class="text-muted">
+                            El año debe estar dentro de la duración de la carrera. Los cuatrimestres válidos son 1° y 2°.
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Código Automático</h6>
+                        <small class="text-muted">
+                            El código se genera automáticamente basado en la carrera y el nombre. Puedes modificarlo manualmente.
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Validaciones</h6>
+                        <small class="text-muted">
+                            • Nombre único por carrera<br>
+                            • Año válido según duración<br>
+                            • Cupo mínimo: 5 estudiantes<br>
+                            • Horas semanales: 1-20h
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información dinámica de la carrera -->
+            <div class="card" id="carrera-stats" style="display: none;">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Estadísticas de la Carrera
+                    </h6>
+                </div>
+                <div class="card-body" id="carrera-stats-content">
+                    <!-- Contenido dinámico -->
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    {{ form.media }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Referencias a elementos
+            const form = document.getElementById('materia-form');
+            const carreraField = document.getElementById('{{ form.carrera.id_for_label }}');
+            const nombreField = document.getElementById('{{ form.nombre.id_for_label }}');
+            const codigoField = document.getElementById('{{ form.codigo.id_for_label }}');
+            const añoField = document.getElementById('{{ form.año_carrera.id_for_label }}');
+            const cuatrimestreField = document.getElementById('{{ form.cuatrimestre.id_for_label }}');
+            const horasField = document.getElementById('{{ form.horas_semanales.id_for_label }}');
+            const descripcionField = document.getElementById('{{ form.descripcion.id_for_label }}');
+            const previewBtn = document.getElementById('preview-btn');
+            const previewSection = document.getElementById('materia-preview');
+            const previewContent = document.getElementById('preview-content');
+            const charCounter = document.getElementById('descripcion-counter');
+            
+            // Información de carreras (simulado - en producción vendría del backend)
+            const carrerasData = {
+                {% for carrera in carreras %}
+                    '{{ carrera.pk }}': {
+                        'nombre': '{{ carrera.nombre }}',
+                        'codigo': '{{ carrera.codigo }}',
+                        'duracion': {{ carrera.duracion_anos }},
+                        'materias': {{ carrera.materias.count }}
+                    },
+                {% endfor %}
+            };
+            
+            // Actualizar información de carrera
+            function updateCarreraInfo() {
+                const carreraId = carreraField.value;
+                const carreraInfo = document.getElementById('carrera-info');
+                const carreraDetails = document.getElementById('carrera-details');
+                const carreraStats = document.getElementById('carrera-stats');
+                const carreraStatsContent = document.getElementById('carrera-stats-content');
+                
+                if (carreraId && carrerasData[carreraId]) {
+                    const carrera = carrerasData[carreraId];
+                    
+                    // Mostrar información
+                    carreraDetails.textContent = `${carrera.nombre} (${carrera.codigo}) - ${carrera.duracion} años`;
+                    carreraInfo.style.display = 'block';
+                    
+                    // Actualizar stats
+                    carreraStatsContent.innerHTML = `
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h5 class="text-primary">${carrera.duracion}</h5>
+                                <small class="text-muted">Años</small>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="text-info">${carrera.materias}</h5>
+                                <small class="text-muted">Materias</small>
+                            </div>
+                        </div>
+                    `;
+                    carreraStats.style.display = 'block';
+                    
+                    // Validar año
+                    validateAño(carrera.duracion);
+                } else {
+                    carreraInfo.style.display = 'none';
+                    carreraStats.style.display = 'none';
+                }
+                
+                // Regenerar código
+                if (carreraField.dataset.autoGenerated !== 'false') {
+                    generateCodigo();
+                }
+            }
+            
+            // Validar año según duración de carrera
+            function validateAño(maxAños) {
+                const año = parseInt(añoField.value);
+                const validationInfo = document.getElementById('validation-info');
+                const validationMessage = document.getElementById('validation-message');
+                
+                if (año && (año < 1 || año > maxAños)) {
+                    validationMessage.textContent = `El año debe estar entre 1 y ${maxAños} (duración de la carrera)`;
+                    validationInfo.style.display = 'block';
+                    añoField.classList.add('is-invalid');
+                } else {
+                    validationInfo.style.display = 'none';
+                    añoField.classList.remove('is-invalid');
+                    if (año) añoField.classList.add('is-valid');
+                }
+            }
+            
+            // Generar código automático
+            function generateCodigo() {
+                const carreraId = carreraField.value;
+                const nombre = nombreField.value;
+                const codigoAuto = document.getElementById('codigo-auto');
+                
+                if (carreraId && nombre && carrerasData[carreraId]) {
+                    const carrera = carrerasData[carreraId];
+                    const codigo = `${carrera.codigo}-${nombre.toUpperCase().replace(/[^A-Z0-9\s]/g, '').split(' ').map(w => w.substring(0, 3)).join('').substring(0, 6)}`;
+                    
+                    codigoField.value = codigo;
+                    codigoAuto.style.display = 'block';
+                    codigoField.dataset.autoGenerated = 'true';
+                } else {
+                    codigoAuto.style.display = 'none';
+                }
+            }
+            
+            // Contador de caracteres
+            function updateCharCounter() {
+                const length = descripcionField.value.length;
+                const maxLength = 500;
+                charCounter.textContent = `${length} / ${maxLength} caracteres`;
+                
+                charCounter.className = 'char-counter';
+                if (length > maxLength * 0.9) {
+                    charCounter.classList.add('danger');
+                } else if (length > maxLength * 0.7) {
+                    charCounter.classList.add('warning');
+                }
+            }
+            
+            // Vista previa
+            function updatePreview() {
+                const carreraId = carreraField.value;
+                const carrera = carreraId ? carrerasData[carreraId] : null;
+                const nombre = nombreField.value || 'Sin nombre';
+                const codigo = codigoField.value || 'SIN-COD';
+                const año = añoField.value || '0';
+                const cuatrimestre = cuatrimestreField.value || '0';
+                const horas = horasField.value || '0';
+                const activa = document.getElementById('{{ form.activa.id_for_label }}').checked;
+                const descripcion = descripcionField.value || 'Sin descripción';
+                
+                previewContent.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6>${nombre}</h6>
+                            <p class="mb-1"><strong>Carrera:</strong> ${carrera ? carrera.nombre : 'No seleccionada'}</p>
+                            <p class="mb-1"><strong>Código:</strong> ${codigo}</p>
+                            <p class="mb-1"><strong>Ubicación:</strong> ${año}° Año - ${cuatrimestre}° Cuatrimestre</p>
+                            <p class="mb-1"><strong>Carga horaria:</strong> ${horas} horas semanales</p>
+                            <p class="mb-2"><strong>Estado:</strong> 
+                                <span class="badge ${activa ? 'badge-success' : 'badge-danger'}">
+                                    ${activa ? 'Activa' : 'Inactiva'}
+                                </span>
+                            </p>
+                            <p class="text-muted">${descripcion}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Event listeners
+            carreraField.addEventListener('change', updateCarreraInfo);
+            nombreField.addEventListener('input', function() {
+                if (codigoField.dataset.autoGenerated !== 'false') {
+                    generateCodigo();
+                }
+                updatePreview();
+            });
+            
+            codigoField.addEventListener('input', function() {
+                this.dataset.autoGenerated = 'false';
+                document.getElementById('codigo-auto').style.display = 'none';
+            });
+            
+            añoField.addEventListener('input', function() {
+                const carreraId = carreraField.value;
+                if (carreraId && carrerasData[carreraId]) {
+                    validateAño(carrerasData[carreraId].duracion);
+                }
+                updatePreview();
+            });
+            
+            [cuatrimestreField, horasField, descripcionField].forEach(field => {
+                field.addEventListener('input', updatePreview);
+            });
+            
+            descripcionField.addEventListener('input', updateCharCounter);
+            
+            // Toggle vista previa
+            previewBtn.addEventListener('click', function() {
+                if (previewSection.style.display === 'none') {
+                    updatePreview();
+                    previewSection.style.display = 'block';
+                    this.innerHTML = '<i class="fas fa-eye-slash me-1"></i>Ocultar Vista Previa';
+                } else {
+                    previewSection.style.display = 'none';
+                    this.innerHTML = '<i class="fas fa-eye me-1"></i>Vista Previa';
+                }
+            });
+            
+            // Inicializar
+            updateCharCounter();
+            updateCarreraInfo();
+            
+            // Auto-foco
+            if (!carreraField.value) {
+                carreraField.focus();
+            } else {
+                nombreField.focus();
+            }
+        });
+    </script>
+{% endblock %}

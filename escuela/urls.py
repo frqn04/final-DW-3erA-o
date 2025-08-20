@@ -23,6 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),       # URLs principales (home)
     path('auth/', include('users.urls')), # URLs de autenticación
+    path('escuelas/', include('escuelas.urls')),  # URLs de escuelas, carreras y materias
+    path('students/', include('students.urls')),  # URLs de gestión de alumnos
 ]
 
 # Servir archivos estáticos y media en desarrollo

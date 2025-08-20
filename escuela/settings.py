@@ -96,6 +96,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'users.middleware.ForcePasswordChangeMiddleware',  # Middleware personalizado para forzar cambio de contraseña
+    'users.middleware.UserActivityMiddleware',         # Middleware para tracking de actividad de usuarios
+    'users.middleware.SecurityCheckMiddleware',        # Middleware para verificaciones de seguridad automáticas
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',  # Para soporte de internacionalización
@@ -161,8 +163,33 @@ AUTH_USER_MODEL = 'users.User'
 # https://docs.djangoproject.com/en/5.2/topics/auth/customizing/#authentication-backends
 AUTHENTICATION_BACKENDS = [
     'users.auth_backends.EmailDNIBackend',  # Backend personalizado para email + DNI
+    'users.auth_backends.AdminBackend',     # Backend para staff y superusers
     'django.contrib.auth.backends.ModelBackend',  # Backend por defecto (fallback)
 ]
+
+# ================================
+# CONFIGURACIONES DE SEGURIDAD
+# ================================
+
+# Configuración de sesiones
+SESSION_COOKIE_AGE = 7200  # 2 horas por defecto
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Configuración de timeout de sesiones (en minutos)
+SESSION_TIMEOUT_MINUTES = 120  # 2 horas para usuarios normales
+ADMIN_SESSION_TIMEOUT_MINUTES = 60  # 1 hora para administradores
+
+# Configuración de intentos de login fallidos
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_DURATION_MINUTES = 30
+
+# Configuración de registro de usuarios
+ALLOW_USER_REGISTRATION = False  # Cambiar a True para permitir registro público
+
+# Configuración de contraseñas
+PASSWORD_RESET_TIMEOUT_DAYS = 1
+PASSWORD_CHANGE_REQUIRED_DAYS = 90  # Días antes de requerir cambio de contraseña
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -195,7 +222,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'es-es'  # Configurado para español
 
-TIME_ZONE = 'America/Mexico_City'  # Configurar según tu zona horaria
+TIME_ZONE = 'America/Argentina/Buenos_Aires'  # Zona horaria de Buenos Aires, Argentina
 
 USE_I18N = True
 

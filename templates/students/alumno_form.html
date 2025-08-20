@@ -1,0 +1,514 @@
+{% extends 'students/base_students.html' %}
+{% load static %}
+
+{% block page_title %}
+{% if object %}Editar Alumno{% else %}Nuevo Alumno{% endif %}
+{% endblock %}
+
+{% block page_description %}
+{% if object %}
+Modificar información del alumno {{ object.nombre_completo }}
+{% else %}
+Registrar un nuevo alumno en el sistema
+{% endif %}
+{% endblock %}
+
+{% block extra_breadcrumbs %}
+{% if object %}
+    <li class="breadcrumb-item">
+        <a href="{% url 'students:alumno_detail' object.pk %}">{{ object.nombre_completo }}</a>
+    </li>
+    <li class="breadcrumb-item active">Editar</li>
+{% else %}
+    <li class="breadcrumb-item active">Nuevo Alumno</li>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    {{ form.media.css }}
+{% endblock %}
+
+{% block hide_sidebar %}true{% endblock %}
+
+{% block main_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-{% if object %}edit{% else %}plus{% endif %} me-2"></i>
+                        {% if object %}Editar Alumno{% else %}Nuevo Alumno{% endif %}
+                    </h5>
+                    {% if object %}
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'students:alumno_detail' object.pk %}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-eye me-1"></i>Ver
+                        </a>
+                        <a href="{% url 'students:alumno_duplicar' object.pk %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-copy me-1"></i>Duplicar
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <form method="post" class="needs-validation" novalidate id="alumno-form">
+                {% csrf_token %}
+                
+                <div class="card-body">
+                    <!-- Información personal -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="fas fa-user me-2"></i>Información Personal
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                    {{ form.first_name.label }}
+                                    {% if form.first_name.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ form.first_name }}
+                                {% if form.first_name.help_text %}
+                                    <div class="form-text">{{ form.first_name.help_text }}</div>
+                                {% endif %}
+                                {% if form.first_name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.first_name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                    {{ form.last_name.label }}
+                                    {% if form.last_name.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ form.last_name }}
+                                {% if form.last_name.help_text %}
+                                    <div class="form-text">{{ form.last_name.help_text }}</div>
+                                {% endif %}
+                                {% if form.last_name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.last_name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.dni.id_for_label }}" class="form-label">
+                                    {{ form.dni.label }}
+                                    {% if form.dni.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                <div class="input-group">
+                                    {{ form.dni }}
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            id="verify-dni" title="Verificar DNI">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </div>
+                                {% if form.dni.help_text %}
+                                    <div class="form-text">{{ form.dni.help_text }}</div>
+                                {% endif %}
+                                {% if form.dni.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.dni.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div id="dni-feedback" class="form-text"></div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    {{ form.email.label }}
+                                    {% if form.email.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.help_text %}
+                                    <div class="form-text">{{ form.email.help_text }}</div>
+                                {% endif %}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.email.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div id="email-feedback" class="form-text"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información académica -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="fas fa-graduation-cap me-2"></i>Información Académica
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.carrera.id_for_label }}" class="form-label">
+                                    {{ form.carrera.label }}
+                                    {% if form.carrera.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ form.carrera }}
+                                {% if form.carrera.help_text %}
+                                    <div class="form-text">{{ form.carrera.help_text }}</div>
+                                {% endif %}
+                                {% if form.carrera.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.carrera.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.fecha_ingreso.id_for_label }}" class="form-label">
+                                    {{ form.fecha_ingreso.label }}
+                                    {% if form.fecha_ingreso.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ form.fecha_ingreso }}
+                                {% if form.fecha_ingreso.help_text %}
+                                    <div class="form-text">{{ form.fecha_ingreso.help_text }}</div>
+                                {% endif %}
+                                {% if form.fecha_ingreso.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.fecha_ingreso.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if object %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Legajo Asignado</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-id-card text-primary"></i>
+                                    </span>
+                                    <input type="text" class="form-control" 
+                                           value="{{ object.legajo }}" readonly>
+                                </div>
+                                <div class="form-text">El legajo se genera automáticamente</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Estado y observaciones -->
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="fas fa-cog me-2"></i>Estado y Observaciones
+                        </h6>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                {{ form.activo }}
+                                <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                                    {{ form.activo.label }}
+                                </label>
+                            </div>
+                            {% if form.activo.help_text %}
+                                <div class="form-text">{{ form.activo.help_text }}</div>
+                            {% endif %}
+                            {% if form.activo.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.activo.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.observaciones.id_for_label }}" class="form-label">
+                                {{ form.observaciones.label }}
+                            </label>
+                            {{ form.observaciones }}
+                            {% if form.observaciones.help_text %}
+                                <div class="form-text">{{ form.observaciones.help_text }}</div>
+                            {% endif %}
+                            {% if form.observaciones.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.observaciones.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <span id="char-count">0</span> / 500 caracteres
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Errores del formulario completo -->
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-light border-0">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="{% url 'students:alumno_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Volver a la Lista
+                            </a>
+                            {% if object %}
+                            <a href="{% url 'students:alumno_detail' object.pk %}" class="btn btn-outline-info">
+                                <i class="fas fa-eye me-1"></i>Ver Detalles
+                            </a>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <button type="button" class="btn btn-secondary me-2" onclick="resetForm()">
+                                <i class="fas fa-undo me-1"></i>Restablecer
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="submit-btn">
+                                <i class="fas fa-save me-1"></i>
+                                {% if object %}Actualizar Alumno{% else %}Crear Alumno{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Vista previa de datos -->
+        {% if not object %}
+        <div class="card border-0 shadow-sm mt-4" id="preview-card" style="display: none;">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-eye me-2"></i>Vista Previa
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Nombre Completo:</strong>
+                        <span id="preview-nombre"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>DNI:</strong>
+                        <span id="preview-dni"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Email:</strong>
+                        <span id="preview-email"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Carrera:</strong>
+                        <span id="preview-carrera"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('alumno-form');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    // Validación en tiempo real
+    setupRealTimeValidation();
+    
+    // Contador de caracteres para observaciones
+    setupCharacterCounter();
+    
+    // Vista previa (solo para nuevos alumnos)
+    {% if not object %}
+    setupPreview();
+    {% endif %}
+    
+    // Validación del formulario antes del envío
+    form.addEventListener('submit', function(e) {
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        }
+        form.classList.add('was-validated');
+    });
+});
+
+function setupRealTimeValidation() {
+    // Validación de DNI
+    const dniInput = document.getElementById('{{ form.dni.id_for_label }}');
+    const dniButton = document.getElementById('verify-dni');
+    const dniFeedback = document.getElementById('dni-feedback');
+    
+    dniInput.addEventListener('input', function() {
+        const dni = this.value.replace(/\D/g, '');
+        if (dni.length >= 7 && dni.length <= 8) {
+            validateDNI(dni);
+        } else {
+            dniFeedback.textContent = '';
+            dniButton.classList.remove('btn-success', 'btn-danger');
+            dniButton.classList.add('btn-outline-secondary');
+        }
+    });
+    
+    dniButton.addEventListener('click', function() {
+        const dni = dniInput.value.replace(/\D/g, '');
+        if (dni) validateDNI(dni);
+    });
+    
+    // Validación de email
+    const emailInput = document.getElementById('{{ form.email.id_for_label }}');
+    const emailFeedback = document.getElementById('email-feedback');
+    
+    emailInput.addEventListener('blur', function() {
+        if (this.value && this.value.includes('@')) {
+            validateEmail(this.value);
+        }
+    });
+}
+
+function validateDNI(dni) {
+    const dniFeedback = document.getElementById('dni-feedback');
+    const dniButton = document.getElementById('verify-dni');
+    
+    fetch('{% url "students:api_validar_dni" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            dni: dni,
+            {% if object %}exclude_id: {{ object.pk }}{% endif %}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.valid) {
+            dniFeedback.textContent = 'DNI disponible';
+            dniFeedback.className = 'form-text text-success';
+            dniButton.classList.remove('btn-outline-secondary', 'btn-danger');
+            dniButton.classList.add('btn-success');
+        } else {
+            dniFeedback.textContent = data.message || 'DNI no disponible';
+            dniFeedback.className = 'form-text text-danger';
+            dniButton.classList.remove('btn-outline-secondary', 'btn-success');
+            dniButton.classList.add('btn-danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error validating DNI:', error);
+        dniFeedback.textContent = 'Error al validar DNI';
+        dniFeedback.className = 'form-text text-warning';
+    });
+}
+
+function validateEmail(email) {
+    const emailFeedback = document.getElementById('email-feedback');
+    
+    fetch('{% url "students:api_validar_email" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            email: email,
+            {% if object %}exclude_id: {{ object.pk }}{% endif %}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.valid) {
+            emailFeedback.textContent = 'Email disponible';
+            emailFeedback.className = 'form-text text-success';
+        } else {
+            emailFeedback.textContent = data.message || 'Email no disponible';
+            emailFeedback.className = 'form-text text-danger';
+        }
+    })
+    .catch(error => {
+        console.error('Error validating email:', error);
+    });
+}
+
+function setupCharacterCounter() {
+    const textarea = document.getElementById('{{ form.observaciones.id_for_label }}');
+    const counter = document.getElementById('char-count');
+    
+    textarea.addEventListener('input', function() {
+        counter.textContent = this.value.length;
+        if (this.value.length > 450) {
+            counter.parentElement.classList.add('text-warning');
+        } else {
+            counter.parentElement.classList.remove('text-warning');
+        }
+    });
+    
+    // Inicializar contador
+    counter.textContent = textarea.value.length;
+}
+
+{% if not object %}
+function setupPreview() {
+    const previewCard = document.getElementById('preview-card');
+    const inputs = ['first_name', 'last_name', 'dni', 'email', 'carrera'];
+    
+    inputs.forEach(fieldName => {
+        const input = document.getElementById(`id_${fieldName}`);
+        if (input) {
+            input.addEventListener('input', updatePreview);
+        }
+    });
+    
+    function updatePreview() {
+        const firstName = document.getElementById('id_first_name').value;
+        const lastName = document.getElementById('id_last_name').value;
+        const dni = document.getElementById('id_dni').value;
+        const email = document.getElementById('id_email').value;
+        const carreraSelect = document.getElementById('id_carrera');
+        const carrera = carreraSelect.options[carreraSelect.selectedIndex].text;
+        
+        if (firstName || lastName || dni || email) {
+            document.getElementById('preview-nombre').textContent = `${firstName} ${lastName}`.trim();
+            document.getElementById('preview-dni').textContent = dni;
+            document.getElementById('preview-email').textContent = email;
+            document.getElementById('preview-carrera').textContent = carrera !== 'Seleccionar carrera...' ? carrera : '';
+            
+            previewCard.style.display = 'block';
+        } else {
+            previewCard.style.display = 'none';
+        }
+    }
+}
+{% endif %}
+
+function resetForm() {
+    if (confirm('¿Está seguro de restablecer el formulario? Se perderán todos los cambios.')) {
+        document.getElementById('alumno-form').reset();
+        document.getElementById('char-count').textContent = '0';
+        {% if not object %}
+        document.getElementById('preview-card').style.display = 'none';
+        {% endif %}
+        document.getElementById('dni-feedback').textContent = '';
+        document.getElementById('email-feedback').textContent = '';
+    }
+}
+</script>
+
+{{ form.media.js }}
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    {{ form.media.js }}
+{% endblock %}

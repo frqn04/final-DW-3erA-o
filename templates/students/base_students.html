@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Alumnos{% endblock %}
+
+{% block extra_css %}
+    <link href="{% static 'students/css/students.css' %}" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header de la aplicación -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-primary text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-graduation-cap me-2"></i>
+                                {% block page_title %}Gestión de Alumnos{% endblock %}
+                            </h2>
+                            <p class="mb-0 opacity-75">
+                                {% block page_description %}
+                                Sistema integral para la administración de estudiantes
+                                {% endblock %}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            {% block header_actions %}
+                            <a href="{% url 'students:alumno_create' %}" class="btn btn-light btn-lg">
+                                <i class="fas fa-plus me-2"></i>Nuevo Alumno
+                            </a>
+                            {% endblock %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación de breadcrumbs -->
+    {% block breadcrumbs %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'home' %}">
+                    <i class="fas fa-home"></i> Inicio
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'students:alumno_list' %}">Alumnos</a>
+            </li>
+            {% block extra_breadcrumbs %}{% endblock %}
+        </ol>
+    </nav>
+    {% endblock %}
+
+    <!-- Área de mensajes -->
+    {% if messages %}
+    <div class="row mb-3">
+        <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2 fs-5"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-triangle me-2 fs-5"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-circle me-2 fs-5"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle me-2 fs-5"></i>
+                    {% endif %}
+                    <div>{{ message }}</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Estadísticas rápidas -->
+    {% block quick_stats %}
+    {% if show_stats %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="fas fa-chart-line me-2"></i>Estadísticas Rápidas
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="d-flex align-items-center p-3 bg-primary bg-opacity-10 rounded">
+                                <i class="fas fa-users fs-1 text-primary me-3"></i>
+                                <div>
+                                    <div class="fs-4 fw-bold text-primary">{{ stats.total_alumnos|default:0 }}</div>
+                                    <div class="text-muted small">Total Alumnos</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="d-flex align-items-center p-3 bg-success bg-opacity-10 rounded">
+                                <i class="fas fa-user-check fs-1 text-success me-3"></i>
+                                <div>
+                                    <div class="fs-4 fw-bold text-success">{{ stats.alumnos_activos|default:0 }}</div>
+                                    <div class="text-muted small">Activos</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="d-flex align-items-center p-3 bg-warning bg-opacity-10 rounded">
+                                <i class="fas fa-user-clock fs-1 text-warning me-3"></i>
+                                <div>
+                                    <div class="fs-4 fw-bold text-warning">{{ stats.nuevos_mes|default:0 }}</div>
+                                    <div class="text-muted small">Nuevos este mes</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="d-flex align-items-center p-3 bg-info bg-opacity-10 rounded">
+                                <i class="fas fa-graduation-cap fs-1 text-info me-3"></i>
+                                <div>
+                                    <div class="fs-4 fw-bold text-info">{{ stats.total_carreras|default:0 }}</div>
+                                    <div class="text-muted small">Carreras</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endblock %}
+
+    <!-- Contenido principal -->
+    <div class="row">
+        {% block sidebar %}
+        <!-- Sidebar con filtros y acciones -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-light border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtros y Acciones
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% block sidebar_content %}
+                    <!-- Búsqueda rápida -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Búsqueda Rápida</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-sm" 
+                                   id="quick-search" placeholder="Buscar alumno...">
+                            <button class="btn btn-outline-secondary btn-sm" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Acciones rápidas -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Acciones Rápidas</label>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'students:alumno_create' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Nuevo Alumno
+                            </a>
+                            <a href="{% url 'students:alumno_import' %}" class="btn btn-success btn-sm">
+                                <i class="fas fa-file-import me-1"></i>Importar CSV
+                            </a>
+                            <a href="{% url 'students:alumno_export' %}" class="btn btn-info btn-sm">
+                                <i class="fas fa-file-export me-1"></i>Exportar
+                            </a>
+                            <a href="{% url 'students:alumno_reportes' %}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-chart-bar me-1"></i>Reportes
+                            </a>
+                        </div>
+                    </div>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+
+        <!-- Contenido principal -->
+        <div class="{% if not hide_sidebar %}col-lg-9 col-md-8{% else %}col-12{% endif %}">
+            {% block main_content %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted">Contenido principal aquí...</p>
+                </div>
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<!-- Modales -->
+{% block modals %}
+<!-- Modal de confirmación genérico -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Acción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Está seguro de realizar esta acción?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmButton">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de loading -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mb-0" id="loadingMessage">Procesando...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <script src="{% static 'students/js/students.js' %}"></script>
+    
+    {% block page_js %}{% endblock %}
+{% endblock %}

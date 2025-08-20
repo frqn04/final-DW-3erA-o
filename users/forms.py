@@ -2,13 +2,25 @@
 Formularios personalizados para la app users.
 
 Este módulo contiene formularios específicos para funcionalidades de usuarios,
-incluyendo formularios de login y cambio de contraseña.
+incluyendo formularios de login, cambio de contraseña, registro y edición de perfil.
+
+Características:
+- Validaciones avanzadas de seguridad
+- Estilos Bootstrap 5 integrados
+- Mensajes de error personalizados
+- Validaciones de contraseñas seguras
+- Formularios responsive y accesibles
 """
 
-from django import forms
-from django.contrib.auth.forms import PasswordChangeForm
-from django.core.exceptions import ValidationError
 import re
+from django import forms
+from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import datetime, timedelta
+
+User = get_user_model()
 
 
 class LoginForm(forms.Form):
@@ -23,15 +35,16 @@ class LoginForm(forms.Form):
         label='Correo Electrónico',
         max_length=254,
         widget=forms.EmailInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control form-control-lg',
             'placeholder': 'tu-email@ejemplo.com',
             'autocomplete': 'email',
             'autofocus': True,
+            'aria-describedby': 'emailHelp',
         }),
         help_text='Ingresa tu dirección de correo electrónico registrada.',
         error_messages={
-            'required': 'El correo electrónico es obligatorio.',
-            'invalid': 'Ingresa un correo electrónico válido.',
+            'required': '📧 El correo electrónico es obligatorio.',
+            'invalid': '❌ Ingresa un correo electrónico válido.',
         }
     )
     
@@ -186,24 +199,333 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         
         # Personalizar el campo de nueva contraseña
         self.fields['new_password1'].widget.attrs.update({
-            'class': 'form-control',
+            'class': 'form-control form-control-lg',
             'placeholder': 'Nueva contraseña',
             'autocomplete': 'new-password',
+            'aria-describedby': 'newPasswordHelp',
         })
         self.fields['new_password1'].help_text = (
-            'Tu contraseña debe tener al menos 8 caracteres, '
-            'incluir letras y números, y no ser muy común.'
+            '🔐 Tu contraseña debe tener al menos 8 caracteres, '
+            'incluir letras mayúsculas, minúsculas, números y un símbolo especial.'
         )
         
         # Personalizar el campo de confirmación
         self.fields['new_password2'].widget.attrs.update({
-            'class': 'form-control',
+            'class': 'form-control form-control-lg',
             'placeholder': 'Confirmar nueva contraseña',
             'autocomplete': 'new-password',
+            'aria-describedby': 'confirmPasswordHelp',
         })
-        self.fields['new_password2'].help_text = 'Repite la nueva contraseña para confirmar.'
+        self.fields['new_password2'].help_text = '🔄 Repite la nueva contraseña para confirmar.'
         
         # Actualizar etiquetas
-        self.fields['old_password'].label = 'Contraseña Actual'
-        self.fields['new_password1'].label = 'Nueva Contraseña'
-        self.fields['new_password2'].label = 'Confirmar Nueva Contraseña'
+        self.fields['old_password'].label = '🔒 Contraseña Actual'
+        self.fields['new_password1'].label = '🆕 Nueva Contraseña'
+        self.fields['new_password2'].label = '✅ Confirmar Nueva Contraseña'
+    
+    def clean_new_password1(self):
+        """
+        Validación avanzada de la nueva contraseña.
+        
+        Returns:
+            str: Nueva contraseña validada
+            
+        Raises:
+            ValidationError: Si la contraseña no cumple los requisitos
+        """
+        password = self.cleaned_data.get('new_password1')
+        
+        if password:
+            # Verificar longitud mínima
+            if len(password) < 8:
+                raise ValidationError('🔐 La contraseña debe tener al menos 8 caracteres.')
+            
+            # Verificar que contenga al menos una letra minúscula
+            if not re.search(r'[a-z]', password):
+                raise ValidationError('🔤 La contraseña debe contener al menos una letra minúscula.')
+            
+            # Verificar que contenga al menos una letra mayúscula
+            if not re.search(r'[A-Z]', password):
+                raise ValidationError('🔠 La contraseña debe contener al menos una letra mayúscula.')
+            
+            # Verificar que contenga al menos un número
+            if not re.search(r'\d', password):
+                raise ValidationError('🔢 La contraseña debe contener al menos un número.')
+            
+            # Verificar que contenga al menos un carácter especial
+            if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+                raise ValidationError('🔣 La contraseña debe contener al menos un símbolo especial (!@#$%^&*(),.?":{}|<>).')
+            
+            # Verificar que no sea demasiado común
+            common_passwords = [
+                'password', '12345678', 'qwerty123', 'admin123', 
+                'Password1', 'password123', '123456789', 'admin1234'
+            ]
+            if password.lower() in [p.lower() for p in common_passwords]:
+                raise ValidationError('🚫 Esta contraseña es demasiado común. Elige una más segura.')
+        
+        return password
+
+
+class UserRegistrationForm(UserCreationForm):
+    """
+    Formulario de registro de usuarios con campos adicionales.
+    
+    Extiende UserCreationForm con campos específicos para el sistema escolar.
+    """
+    
+    email = forms.EmailField(
+        label='Correo Electrónico',
+        max_length=254,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'correo@ejemplo.com',
+            'autocomplete': 'email',
+        }),
+        help_text='📧 Ingresa un correo electrónico válido.',
+    )
+    
+    dni = forms.CharField(
+        label='DNI/Cédula',
+        max_length=20,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '12345678',
+            'autocomplete': 'off',
+        }),
+        help_text='🆔 Documento Nacional de Identidad.',
+    )
+    
+    first_name = forms.CharField(
+        label='Nombres',
+        max_length=30,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Juan Carlos',
+            'autocomplete': 'given-name',
+        }),
+        help_text='👤 Nombres completos.',
+    )
+    
+    last_name = forms.CharField(
+        label='Apellidos',
+        max_length=30,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'García López',
+            'autocomplete': 'family-name',
+        }),
+        help_text='👥 Apellidos completos.',
+    )
+    
+    phone = forms.CharField(
+        label='Teléfono',
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '+1234567890',
+            'autocomplete': 'tel',
+        }),
+        help_text='📱 Número de teléfono (opcional).',
+    )
+    
+    birth_date = forms.DateField(
+        label='Fecha de Nacimiento',
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date',
+            'autocomplete': 'bday',
+        }),
+        help_text='🎂 Tu fecha de nacimiento (opcional).',
+    )
+    
+    role = forms.ChoiceField(
+        label='Rol en el Sistema',
+        choices=[
+            ('', 'Selecciona un rol'),
+            ('student', '👨‍🎓 Estudiante'),
+            ('teacher', '👨‍🏫 Profesor'),
+            ('parent', '👨‍👩‍👧‍👦 Padre/Madre'),
+            ('staff', '👨‍💼 Personal Administrativo'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+        }),
+        help_text='🎭 Selecciona tu rol principal en la institución.',
+    )
+    
+    terms_accepted = forms.BooleanField(
+        label='Acepto los términos y condiciones',
+        required=True,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+        }),
+        help_text='📋 Debes aceptar los términos para continuar.',
+        error_messages={
+            'required': '✅ Debes aceptar los términos y condiciones.',
+        }
+    )
+    
+    class Meta:
+        model = User
+        fields = ('email', 'dni', 'first_name', 'last_name', 'phone', 'birth_date', 'role', 'password1', 'password2')
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Personalizar campos de contraseña
+        self.fields['password1'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Contraseña segura',
+            'autocomplete': 'new-password',
+        })
+        self.fields['password1'].help_text = (
+            '🔐 Mínimo 8 caracteres con mayúsculas, minúsculas, números y símbolos.'
+        )
+        
+        self.fields['password2'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Confirmar contraseña',
+            'autocomplete': 'new-password',
+        })
+        self.fields['password2'].help_text = '🔄 Repite la contraseña para confirmar.'
+        
+        # Actualizar etiquetas
+        self.fields['password1'].label = '🔒 Contraseña'
+        self.fields['password2'].label = '✅ Confirmar Contraseña'
+    
+    def clean_email(self):
+        """Validación del email."""
+        email = self.cleaned_data.get('email')
+        if email:
+            email = email.lower().strip()
+            if User.objects.filter(email=email).exists():
+                raise ValidationError('📧 Ya existe un usuario con este correo electrónico.')
+        return email
+    
+    def clean_dni(self):
+        """Validación del DNI."""
+        dni = self.cleaned_data.get('dni')
+        if dni:
+            dni = dni.strip().upper()
+            if User.objects.filter(dni=dni).exists():
+                raise ValidationError('🆔 Ya existe un usuario con este DNI.')
+            if len(dni) < 5:
+                raise ValidationError('📏 El DNI debe tener al menos 5 caracteres.')
+        return dni
+    
+    def clean_birth_date(self):
+        """Validación de la fecha de nacimiento."""
+        birth_date = self.cleaned_data.get('birth_date')
+        if birth_date:
+            today = timezone.now().date()
+            age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            
+            if birth_date >= today:
+                raise ValidationError('📅 La fecha de nacimiento no puede ser en el futuro.')
+            if age > 120:
+                raise ValidationError('📅 Por favor verifica la fecha de nacimiento.')
+            if age < 5 and self.cleaned_data.get('role') == 'teacher':
+                raise ValidationError('📅 La edad no es apropiada para el rol seleccionado.')
+        
+        return birth_date
+
+
+class UserProfileForm(forms.ModelForm):
+    """
+    Formulario para editar el perfil del usuario.
+    
+    Permite a los usuarios actualizar su información personal.
+    """
+    
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'phone', 'address', 'birth_date']
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombres',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Apellidos',
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+1234567890',
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Dirección completa',
+            }),
+            'birth_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+            }),
+        }
+        help_texts = {
+            'first_name': '👤 Tus nombres completos',
+            'last_name': '👥 Tus apellidos completos',
+            'phone': '📱 Número de teléfono de contacto',
+            'address': '🏠 Tu dirección completa',
+            'birth_date': '🎂 Tu fecha de nacimiento',
+        }
+    
+    def clean_birth_date(self):
+        """Validación de fecha de nacimiento."""
+        birth_date = self.cleaned_data.get('birth_date')
+        if birth_date:
+            today = timezone.now().date()
+            if birth_date >= today:
+                raise ValidationError('📅 La fecha de nacimiento no puede ser en el futuro.')
+        return birth_date
+
+
+class PasswordResetRequestForm(forms.Form):
+    """
+    Formulario para solicitar restablecimiento de contraseña.
+    
+    Requiere email y DNI para mayor seguridad.
+    """
+    
+    email = forms.EmailField(
+        label='Correo Electrónico',
+        max_length=254,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'tu-email@ejemplo.com',
+            'autocomplete': 'email',
+            'autofocus': True,
+        }),
+        help_text='📧 Correo electrónico registrado en tu cuenta.',
+    )
+    
+    dni = forms.CharField(
+        label='DNI/Cédula',
+        max_length=20,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '12345678',
+            'autocomplete': 'off',
+        }),
+        help_text='🆔 Tu Documento Nacional de Identidad.',
+    )
+    
+    def clean(self):
+        """Validación cruzada de email y DNI."""
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        dni = cleaned_data.get('dni')
+        
+        if email and dni:
+            try:
+                user = User.objects.get(email=email.lower(), dni=dni.upper())
+                if not user.is_active:
+                    raise ValidationError('❌ Esta cuenta no está activa.')
+            except User.DoesNotExist:
+                raise ValidationError('❌ No se encontró una cuenta con estos datos.')
+        
+        return cleaned_data

@@ -1,0 +1,245 @@
+{% extends 'escuelas/base.html' %}
+{% load static %}
+
+{% block title %}{{ materia.nombre }}{% endblock %}
+
+{% block escuelas_content %}
+    <div class="row">
+        <!-- Información principal -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-book me-2"></i>{{ materia.nombre }}
+                    </h5>
+                    <span class="badge {% if materia.activa %}badge-success{% else %}badge-danger{% endif %} fs-6">
+                        {% if materia.activa %}Activa{% else %}Inactiva{% endif %}
+                    </span>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Información de la carrera -->
+                    <div class="alert alert-info mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="alert-heading mb-1">
+                                    <i class="fas fa-university me-1"></i>{{ materia.carrera.nombre }}
+                                </h6>
+                                <small>{{ materia.carrera.codigo }} - {{ materia.carrera.duracion_anos }} años</small>
+                            </div>
+                            <a href="{% url 'escuelas:carrera_detail' materia.carrera.pk %}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>Ver Carrera
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Información académica -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Información Académica</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Código:</strong></td>
+                                    <td><code>{{ materia.codigo }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Año de Carrera:</strong></td>
+                                    <td>{{ materia.año_carrera }}° Año</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cuatrimestre:</strong></td>
+                                    <td>{{ materia.cuatrimestre }}° Cuatrimestre</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Horas Semanales:</strong></td>
+                                    <td>{{ materia.horas_semanales }} horas</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Gestión y Cupos</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Cupo Máximo:</strong></td>
+                                    <td>
+                                        <span class="badge badge-info">{{ materia.cupo_maximo }}</span> estudiantes
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        {% if materia.activa %}
+                                            <span class="text-success">
+                                                <i class="fas fa-check-circle me-1"></i>Activa
+                                            </span>
+                                        {% else %}
+                                            <span class="text-danger">
+                                                <i class="fas fa-times-circle me-1"></i>Inactiva
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Creada:</strong></td>
+                                    <td>{{ materia.fecha_creacion|date:"d/m/Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Actualizada:</strong></td>
+                                    <td>{{ materia.fecha_actualizacion|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Descripción -->
+                    {% if materia.descripcion %}
+                        <div class="mb-3">
+                            <h6>Descripción</h6>
+                            <div class="border-start border-primary border-3 ps-3">
+                                <p class="text-muted mb-0">{{ materia.descripcion|linebreaks }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Botones de acción -->
+                    {% if user.role == 'ADMIN' %}
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'escuelas:materia_update' materia.pk %}" class="btn btn-warning">
+                                <i class="fas fa-edit me-1"></i>Editar
+                            </a>
+                            <a href="{% url 'escuelas:materia_delete' materia.pk %}" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>Eliminar
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Otras materias de la carrera -->
+            {% if otras_materias %}
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-layer-group me-2"></i>Otras Materias de {{ materia.carrera.nombre }}
+                        </h6>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="row">
+                            {% for otra_materia in otras_materias %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                                        <div>
+                                            <a href="{% url 'escuelas:materia_detail' otra_materia.pk %}" 
+                                               class="text-decoration-none">
+                                                <strong>{{ otra_materia.nombre }}</strong>
+                                            </a>
+                                            <br>
+                                            <small class="text-muted">
+                                                {{ otra_materia.año_carrera }}° Año - {{ otra_materia.cuatrimestre }}° Cuatr.
+                                            </small>
+                                        </div>
+                                        <span class="badge {% if otra_materia.activa %}badge-success{% else %}badge-danger{% endif %}">
+                                            {% if otra_materia.activa %}Activa{% else %}Inactiva{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{% url 'escuelas:materia_list' %}?carrera={{ materia.carrera.pk }}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-list me-1"></i>Ver Todas las Materias de la Carrera
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Panel lateral -->
+        <div class="col-md-4">
+            <!-- Navegación -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-compass me-2"></i>Navegación
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'escuelas:materia_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-1"></i>Volver al Listado
+                        </a>
+                        <a href="{% url 'escuelas:carrera_detail' materia.carrera.pk %}" class="btn btn-outline-info">
+                            <i class="fas fa-university me-1"></i>Ver Carrera
+                        </a>
+                        <a href="{% url 'escuelas:materia_list' %}?carrera={{ materia.carrera.pk }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-filter me-1"></i>Materias de la Carrera
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Resumen rápido -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Resumen Rápido
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-2">
+                            <h5 class="text-primary">{{ materia.año_carrera }}°</h5>
+                            <small class="text-muted">Año</small>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <h5 class="text-info">{{ materia.cuatrimestre }}°</h5>
+                            <small class="text-muted">Cuatrimestre</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="text-success">{{ materia.horas_semanales }}h</h5>
+                            <small class="text-muted">Semanales</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="text-warning">{{ materia.cupo_maximo }}</h5>
+                            <small class="text-muted">Cupo Máx.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cronología de ubicación -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-map-marked-alt me-2"></i>Ubicación Académica
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge badge-primary me-2">1</span>
+                            <span>{{ materia.carrera.nombre }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge badge-secondary me-2">2</span>
+                            <span>{{ materia.año_carrera }}° Año</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge badge-info me-2">3</span>
+                            <span>{{ materia.cuatrimestre }}° Cuatrimestre</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge badge-success me-2">4</span>
+                            <span><strong>{{ materia.nombre }}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

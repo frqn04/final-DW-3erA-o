@@ -1,0 +1,336 @@
+{% extends 'escuelas/base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        .form-section {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-floating {
+            margin-bottom: 1rem;
+        }
+        
+        .char-counter {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: right;
+        }
+        
+        .char-counter.warning {
+            color: #fd7e14;
+        }
+        
+        .char-counter.danger {
+            color: #dc3545;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .preview-section {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0.25rem;
+        }
+    </style>
+{% endblock %}
+
+{% block escuelas_content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-university me-2"></i>{{ titulo }}
+                    </h5>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" id="carrera-form" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Información básica -->
+                        <div class="form-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Información Básica
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-floating">
+                                        {{ form.nombre }}
+                                        <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+                                        {% if form.nombre.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.nombre.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        {{ form.codigo }}
+                                        <label for="{{ form.codigo.id_for_label }}">{{ form.codigo.label }}</label>
+                                        {% if form.codigo.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.codigo.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            <small>Se generará automáticamente si se deja vacío</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Configuración académica -->
+                        <div class="form-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-graduation-cap me-2"></i>Configuración Académica
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form.duracion_anos }}
+                                        <label for="{{ form.duracion_anos.id_for_label }}">{{ form.duracion_anos.label }}</label>
+                                        {% if form.duracion_anos.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.duracion_anos.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mt-3">
+                                        {{ form.activa }}
+                                        <label class="form-check-label" for="{{ form.activa.id_for_label }}">
+                                            {{ form.activa.label }}
+                                        </label>
+                                        {% if form.activa.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.activa.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Descripción -->
+                        <div class="form-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-file-text me-2"></i>Descripción
+                            </h6>
+                            
+                            <div class="form-floating">
+                                {{ form.descripcion }}
+                                <label for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
+                                {% if form.descripcion.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.descripcion.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div id="descripcion-counter" class="char-counter">0 / 500 caracteres</div>
+                        </div>
+                        
+                        <!-- Vista previa -->
+                        <div class="preview-section" id="carrera-preview" style="display: none;">
+                            <h6 class="text-info mb-2">
+                                <i class="fas fa-eye me-2"></i>Vista Previa
+                            </h6>
+                            <div id="preview-content"></div>
+                        </div>
+                        
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'escuelas:carrera_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancelar
+                            </a>
+                            <div>
+                                <button type="button" id="preview-btn" class="btn btn-info me-2">
+                                    <i class="fas fa-eye me-1"></i>Vista Previa
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>{{ accion }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel de ayuda -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>Ayuda
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Nombre de la Carrera</h6>
+                        <small class="text-muted">
+                            Nombre completo y oficial de la carrera. Debe ser único en el sistema.
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Código</h6>
+                        <small class="text-muted">
+                            Código identificador único. Si no se especifica, se generará automáticamente basado en el nombre.
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Duración</h6>
+                        <small class="text-muted">
+                            Número de años que dura la carrera (típicamente entre 2 y 6 años).
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Estado</h6>
+                        <small class="text-muted">
+                            Las carreras activas aparecen en los listados y permiten inscripciones. Las inactivas quedan archivadas.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Referencias a elementos
+            const form = document.getElementById('carrera-form');
+            const nombreField = document.getElementById('{{ form.nombre.id_for_label }}');
+            const codigoField = document.getElementById('{{ form.codigo.id_for_label }}');
+            const descripcionField = document.getElementById('{{ form.descripcion.id_for_label }}');
+            const previewBtn = document.getElementById('preview-btn');
+            const previewSection = document.getElementById('carrera-preview');
+            const previewContent = document.getElementById('preview-content');
+            const charCounter = document.getElementById('descripcion-counter');
+            
+            // Auto-generar código basado en el nombre
+            nombreField.addEventListener('input', function() {
+                if (!codigoField.value || codigoField.dataset.autoGenerated === 'true') {
+                    const codigo = this.value
+                        .toUpperCase()
+                        .replace(/[^A-Z0-9\s]/g, '')
+                        .split(' ')
+                        .map(word => word.substring(0, 3))
+                        .join('')
+                        .substring(0, 10);
+                    
+                    codigoField.value = codigo;
+                    codigoField.dataset.autoGenerated = 'true';
+                }
+                updatePreview();
+            });
+            
+            // Marcar código como manual si se edita directamente
+            codigoField.addEventListener('input', function() {
+                this.dataset.autoGenerated = 'false';
+            });
+            
+            // Contador de caracteres para descripción
+            function updateCharCounter() {
+                const length = descripcionField.value.length;
+                const maxLength = 500;
+                charCounter.textContent = `${length} / ${maxLength} caracteres`;
+                
+                // Cambiar color según proximidad al límite
+                charCounter.className = 'char-counter';
+                if (length > maxLength * 0.9) {
+                    charCounter.classList.add('danger');
+                } else if (length > maxLength * 0.7) {
+                    charCounter.classList.add('warning');
+                }
+            }
+            
+            descripcionField.addEventListener('input', function() {
+                updateCharCounter();
+                updatePreview();
+            });
+            
+            // Vista previa
+            function updatePreview() {
+                const nombre = nombreField.value || 'Sin nombre';
+                const codigo = codigoField.value || 'SIN-COD';
+                const duracion = document.getElementById('{{ form.duracion_anos.id_for_label }}').value || '0';
+                const activa = document.getElementById('{{ form.activa.id_for_label }}').checked;
+                const descripcion = descripcionField.value || 'Sin descripción';
+                
+                previewContent.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6>${nombre}</h6>
+                            <p class="mb-1"><strong>Código:</strong> ${codigo}</p>
+                            <p class="mb-1"><strong>Duración:</strong> ${duracion} años</p>
+                            <p class="mb-2"><strong>Estado:</strong> 
+                                <span class="badge ${activa ? 'badge-success' : 'badge-danger'}">
+                                    ${activa ? 'Activa' : 'Inactiva'}
+                                </span>
+                            </p>
+                            <p class="text-muted">${descripcion}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Toggle vista previa
+            previewBtn.addEventListener('click', function() {
+                if (previewSection.style.display === 'none') {
+                    updatePreview();
+                    previewSection.style.display = 'block';
+                    this.innerHTML = '<i class="fas fa-eye-slash me-1"></i>Ocultar Vista Previa';
+                } else {
+                    previewSection.style.display = 'none';
+                    this.innerHTML = '<i class="fas fa-eye me-1"></i>Vista Previa';
+                }
+            });
+            
+            // Validación en tiempo real
+            function validateField(field, validator) {
+                field.addEventListener('blur', function() {
+                    if (validator(this.value)) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    } else {
+                        this.classList.remove('is-valid');
+                        this.classList.add('is-invalid');
+                    }
+                });
+            }
+            
+            // Validadores
+            validateField(nombreField, value => value.trim().length >= 3);
+            validateField(codigoField, value => value.trim().length >= 2);
+            
+            // Inicializar
+            updateCharCounter();
+            
+            // Auto-foco en el primer campo
+            nombreField.focus();
+        });
+    </script>
+{% endblock %}

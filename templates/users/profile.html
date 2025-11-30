@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="mb-4">
+                <i class="bi bi-person-circle me-2"></i>
+                Mi Perfil
+            </h2>
+            
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Nombre completo:</div>
+                        <div class="col-md-8">{{ user.get_full_name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Email:</div>
+                        <div class="col-md-8">{{ user.email }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">DNI:</div>
+                        <div class="col-md-8">{{ user.dni }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Rol:</div>
+                        <div class="col-md-8">
+                            <span class="badge bg-primary">{{ user.get_role_display }}</span>
+                        </div>
+                    </div>
+                    {% if user.phone %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Teléfono:</div>
+                        <div class="col-md-8">{{ user.phone }}</div>
+                    </div>
+                    {% endif %}
+                    {% if user.address %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Dirección:</div>
+                        <div class="col-md-8">{{ user.address }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <a href="{% url 'users:change_password' %}" class="btn btn-warning">
+                    <i class="bi bi-key me-2"></i>
+                    Cambiar Contraseña
+                </a>
+                <a href="{% url 'core:home' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Volver
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

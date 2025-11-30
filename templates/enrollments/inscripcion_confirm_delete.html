@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Inscripción{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4 text-danger">
+        <i class="bi bi-trash me-2"></i>
+        Eliminar Inscripción
+    </h2>
+
+    <div class="card shadow border-danger">
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>¿Estás seguro que deseas eliminar esta inscripción?</strong>
+            </div>
+
+            <div class="mb-3">
+                <strong>Alumno:</strong> {{ object.alumno.get_full_name }} ({{ object.alumno.legajo }})<br>
+                <strong>Materia:</strong> {{ object.materia.nombre }}<br>
+                <strong>Carrera:</strong> {{ object.materia.carrera.nombre }}<br>
+                <strong>Estado:</strong> {{ object.get_estado_display }}
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>
+                        Sí, eliminar
+                    </button>
+                    <a href="{% url 'enrollments:inscripcion_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

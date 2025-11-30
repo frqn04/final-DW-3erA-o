@@ -1,0 +1,51 @@
+# ===================================
+# Sistema de Gestión Escolar - Django
+# ===================================
+# Proyecto Final - Desarrollo Web
+# Python 3.13 | Django 5.2.5
+# ===================================
+
+# === CORE FRAMEWORK ===
+Django==5.2.5
+
+# === BASE DE DATOS ===
+# Para PostgreSQL (comentar si usas SQLite)
+# psycopg2-binary==2.9.9
+
+# === FRONTEND Y ESTILOS ===
+django-bootstrap5==24.2
+
+# === FILTROS Y TABLAS ===
+django-filter==24.3
+django-tables2==2.7.0
+
+# === CONFIGURACIÓN Y ENTORNO ===
+django-environ==0.11.2
+
+# === IMÁGENES ===
+Pillow==10.4.0
+
+# === DESARROLLO (Opcional) ===
+# Descomentar para desarrollo local
+# django-debug-toolbar==4.4.6
+# ipython==8.18.0
+# ipdb==0.13.13
+
+# === TESTING ===
+pytest==7.4.3
+pytest-django==4.8.0
+pytest-cov==4.1.0
+coverage==7.6.1
+factory-boy==3.3.0
+
+# === CODE QUALITY ===
+# Descomentar para validación de código
+# flake8==6.1.0
+# black==23.12.1
+# isort==5.13.2
+
+# === PRODUCCIÓN ===
+# Descomentar para producción
+# gunicorn==21.2.0
+# whitenoise==6.6.0
+# django-redis==5.4.0

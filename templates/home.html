@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - Sistema Académico{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Hero Section -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="bi bi-book text-primary"></i>
+                    Bienvenido al Sistema de Gestión Académica
+                </h1>
+                <p class="lead text-muted">
+                    Plataforma integral para la gestión de carreras, materias, alumnos e inscripciones
+                </p>
+            </div>
+
+            {% if user.is_authenticated %}
+            <!-- User Info -->
+            <div class="alert alert-info mb-4">
+                <i class="bi bi-person-check me-2"></i>
+                Has iniciado sesión como <strong>{{ user.get_full_name }}</strong>
+                <span class="badge bg-primary ms-2">{{ user.get_role_display }}</span>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="row g-4 mb-5 justify-content-center">
+                {% if user.is_admin %}
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-primary shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-mortarboard fs-1 text-primary mb-3"></i>
+                            <h5 class="card-title">Carreras</h5>
+                            <p class="card-text text-muted">Gestiona las carreras disponibles</p>
+                            <a href="{% url 'escuelas:carrera_list' %}" class="btn btn-primary">
+                                Ver Carreras
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-success shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-journal-text fs-1 text-success mb-3"></i>
+                            <h5 class="card-title">Materias</h5>
+                            <p class="card-text text-muted">Explora el catálogo de materias</p>
+                            <a href="{% url 'escuelas:materia_list' %}" class="btn btn-success">
+                                Ver Materias
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% if user.is_admin %}
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-info shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-people fs-1 text-info mb-3"></i>
+                            <h5 class="card-title">Alumnos</h5>
+                            <p class="card-text text-muted">Administra los alumnos</p>
+                            <a href="{% url 'students:alumno_list' %}" class="btn btn-info">
+                                Ver Alumnos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-warning shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-clipboard-check fs-1 text-warning mb-3"></i>
+                            <h5 class="card-title">Inscripciones</h5>
+                            <p class="card-text text-muted">Gestiona las inscripciones</p>
+                            <a href="{% url 'enrollments:inscripcion_list' %}" class="btn btn-warning">
+                                Ver Inscripciones
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role-specific Info -->
+            {% if user.is_admin %}
+            <div class="alert alert-success">
+                <h5><i class="bi bi-shield-check me-2"></i>Permisos de Administrador</h5>
+                <p class="mb-0">Tienes acceso completo para crear, editar y eliminar todos los registros del sistema.</p>
+            </div>
+            {% elif user.is_alumno %}
+            <div class="alert alert-primary">
+                <h5><i class="bi bi-person me-2"></i>Permisos de Alumno</h5>
+                <p class="mb-0">Puedes ver las materias de tu carrera e inscribirte a las disponibles.</p>
+            </div>
+            {% elif user.is_invitado %}
+            <div class="alert alert-secondary">
+                <h5><i class="bi bi-eye me-2"></i>Permisos de Invitado</h5>
+                <p class="mb-0">Puedes ver las materias e inscripciones en modo solo lectura.</p>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <!-- Not Authenticated - Invitado sin cuenta -->
+            <div class="alert alert-info mb-4">
+                <i class="bi bi-eye me-2"></i>
+                Navegando como <strong>Invitado</strong> - Puedes explorar libremente las carreras y materias
+            </div>
+            
+            <!-- Quick Links para invitados -->
+            <div class="row g-4 mb-5 justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-primary shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-mortarboard fs-1 text-primary mb-3"></i>
+                            <h5 class="card-title">Carreras</h5>
+                            <p class="card-text text-muted">Explora las carreras disponibles</p>
+                            <a href="{% url 'escuelas:carrera_list' %}" class="btn btn-primary">
+                                Ver Carreras
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-success shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-journal-text fs-1 text-success mb-3"></i>
+                            <h5 class="card-title">Materias</h5>
+                            <p class="card-text text-muted">Explora el catálogo de materias</p>
+                            <a href="{% url 'escuelas:materia_list' %}" class="btn btn-success">
+                                Ver Materias
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center py-3">
+                <p class="text-muted mb-3">¿Eres alumno o administrador?</p>
+                <a href="{% url 'users:login' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                    Iniciar Sesión
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Inscripción{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-clipboard-check me-2"></i>Inscripción</h2>
+        {% if user.is_admin %}
+        <div>
+            <a href="{% url 'enrollments:inscripcion_update' inscripcion.pk %}" class="btn btn-warning">
+                <i class="bi bi-pencil me-1"></i>Editar
+            </a>
+            <a href="{% url 'enrollments:inscripcion_delete' inscripcion.pk %}" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i>Eliminar
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Alumno:</div>
+                <div class="col-md-9">{{ inscripcion.alumno.get_full_name }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Legajo:</div>
+                <div class="col-md-9">{{ inscripcion.alumno.legajo }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Materia:</div>
+                <div class="col-md-9">{{ inscripcion.materia.nombre }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Carrera:</div>
+                <div class="col-md-9">{{ inscripcion.materia.carrera.nombre }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Fecha de inscripción:</div>
+                <div class="col-md-9">{{ inscripcion.fecha_inscripcion|date:"d/m/Y" }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Estado:</div>
+                <div class="col-md-9">
+                    {% if inscripcion.estado == 'CURSANDO' %}
+                    <span class="badge bg-primary">{{ inscripcion.get_estado_display }}</span>
+                    {% elif inscripcion.estado == 'REGULAR' %}
+                    <span class="badge bg-info">{{ inscripcion.get_estado_display }}</span>
+                    {% elif inscripcion.estado == 'APROBADO' %}
+                    <span class="badge bg-success">{{ inscripcion.get_estado_display }}</span>
+                    {% else %}
+                    <span class="badge bg-danger">{{ inscripcion.get_estado_display }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if inscripcion.observaciones %}
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Observaciones:</div>
+                <div class="col-md-9">{{ inscripcion.observaciones }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="{% url 'enrollments:inscripcion_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -63,15 +63,17 @@ pip --version
 
 ## 🚀 Instalación y Configuración
 
-### 1. Clonar o descargar el proyecto
+### 1. Clonar el proyecto desde GitHub
 
 ```powershell
-# Si tienes Git instalado
-git clone <URL_DEL_REPOSITORIO>
-cd final-DW-3erA-o
+# Clonar el repositorio
+git clone https://github.com/frqn04/final-DW-3erA-o.git
 
-# O descargar ZIP y descomprimir
+# Entrar al directorio del proyecto
+cd final-DW-3erA-o
 ```
+
+**Alternativa:** Descargar como ZIP desde https://github.com/frqn04/final-DW-3erA-o y descomprimir.
 
 ### 2. Crear entorno virtual (recomendado)
 
@@ -463,5 +465,26 @@ Este documento incluye:
 - Conceptos de programación aplicados
 
 ---
+
+## 🔗 Enlaces del Proyecto
+
+- **Repositorio GitHub**: https://github.com/frqn04/final-DW-3erA-o
+- **Clonar proyecto**: `git clone https://github.com/frqn04/final-DW-3erA-o.git`
+- **Descargar ZIP**: https://github.com/frqn04/final-DW-3erA-o/archive/refs/heads/main.zip
+
+---
+
+## 👨‍💻 Autor
+
+**Francisco Castellano**
+- GitHub: [@frqn04](https://github.com/frqn04)
+- Proyecto: Trabajo Final - Desarrollo de Sistemas Web
+
+---
+
+**Desarrollado con ❤️ usando Django 5.2.5 y Python 3.13**
+
+*Sistema de Gestión Académica - Versión 1.0.0*
+
 
 

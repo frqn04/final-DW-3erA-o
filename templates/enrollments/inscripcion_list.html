@@ -47,15 +47,19 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'enrollments:inscripcion_detail' inscripcion.pk %}" class="btn btn-sm btn-info">
+                        <a href="{% url 'enrollments:inscripcion_detail' inscripcion.pk %}" class="btn btn-sm btn-info" title="Ver detalles">
                             <i class="bi bi-eye"></i>
                         </a>
                         {% if user.is_admin %}
-                        <a href="{% url 'enrollments:inscripcion_update' inscripcion.pk %}" class="btn btn-sm btn-warning">
+                        <a href="{% url 'enrollments:inscripcion_update' inscripcion.pk %}" class="btn btn-sm btn-warning" title="Editar">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="{% url 'enrollments:inscripcion_delete' inscripcion.pk %}" class="btn btn-sm btn-danger">
+                        <a href="{% url 'enrollments:inscripcion_delete' inscripcion.pk %}" class="btn btn-sm btn-danger" title="Eliminar">
                             <i class="bi bi-trash"></i>
+                        </a>
+                        {% elif user.is_alumno %}
+                        <a href="{% url 'enrollments:inscripcion_delete' inscripcion.pk %}" class="btn btn-sm btn-danger" title="Darse de baja">
+                            <i class="bi bi-box-arrow-right"></i> Baja
                         </a>
                         {% endif %}
                     </td>

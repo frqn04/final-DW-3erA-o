@@ -25,7 +25,8 @@ class InscripcionForm(forms.ModelForm):
                 self.alumno_actual = Alumno.objects.get(user=self.user)
                 
                 # Remover el campo alumno completamente para alumnos
-                self.fields.pop('alumno')
+                if 'alumno' in self.fields:
+                    self.fields.pop('alumno')
                 
                 # Filtrar materias solo de su carrera y que estén activas
                 from escuelas.models import Materia
@@ -35,13 +36,17 @@ class InscripcionForm(forms.ModelForm):
                 ).order_by('año_carrera', 'nombre')
                 
                 # Remover el campo estado para alumnos
-                self.fields.pop('estado')
+                if 'estado' in self.fields:
+                    self.fields.pop('estado')
                 
             except Alumno.DoesNotExist:
-                # Si el usuario no tiene alumno asociado, no puede inscribirse
+                # Si el usuario no tiene alumno asociado, mostrar error
                 from escuelas.models import Materia
-                self.fields['alumno'].queryset = Alumno.objects.none()
+                if 'alumno' in self.fields:
+                    self.fields['alumno'].queryset = Alumno.objects.none()
                 self.fields['materia'].queryset = Materia.objects.none()
+                # Agregar error al formulario
+                self.add_error(None, '⚠️ Tu usuario no tiene un alumno asociado. Contacta al administrador.')
         else:
             # Si es admin, mostrar todas las materias activas
             from escuelas.models import Materia
@@ -54,7 +59,9 @@ class InscripcionForm(forms.ModelForm):
         inscripcion = super().save(commit=False)
         
         # Si el usuario es alumno, asignar su registro de alumno y estado
-        if self.user and self.user.is_alumno() and self.alumno_actual:
+        if self.user and self.user.is_alumno():
+            if not self.alumno_actual:
+                raise forms.ValidationError('⚠️ No se encontró un alumno asociado a tu usuario. Contacta al administrador.')
             inscripcion.alumno = self.alumno_actual
             inscripcion.estado = 'CURSANDO'
         

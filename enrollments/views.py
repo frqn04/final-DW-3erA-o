@@ -112,16 +112,37 @@ class InscripcionUpdateView(AdminRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class InscripcionDeleteView(AdminRequiredMixin, DeleteView):
-    """Eliminar inscripción"""
+class InscripcionDeleteView(AdminOrAlumnoMixin, DeleteView):
+    """Eliminar inscripción (darse de baja)"""
     model = Inscripcion
     template_name = 'enrollments/inscripcion_confirm_delete.html'
     success_url = reverse_lazy('enrollments:inscripcion_list')
     
+    def get_queryset(self):
+        """
+        Los alumnos solo pueden eliminar sus propias inscripciones.
+        Los admins pueden eliminar cualquiera.
+        """
+        queryset = super().get_queryset()
+        
+        if self.request.user.is_alumno():
+            try:
+                from students.models import Alumno
+                alumno = Alumno.objects.get(user=self.request.user)
+                queryset = queryset.filter(alumno=alumno)
+            except Alumno.DoesNotExist:
+                queryset = queryset.none()
+        
+        return queryset
+    
     def form_valid(self, form):
         try:
-            messages.success(self.request, f'Inscripción eliminada exitosamente.')
+            inscripcion = self.get_object()
+            if self.request.user.is_alumno():
+                messages.success(self.request, f'✅ Te diste de baja de "{inscripcion.materia.nombre}" exitosamente.')
+            else:
+                messages.success(self.request, f'✅ Inscripción eliminada exitosamente.')
             return super().form_valid(form)
         except Exception as e:
-            messages.error(self.request, f'Error al eliminar: {str(e)}')
+            messages.error(self.request, f'⚠️ Error al eliminar: {str(e)}')
             return self.form_invalid(form)

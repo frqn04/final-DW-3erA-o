@@ -57,12 +57,16 @@ class Inscripcion(models.Model):
         """
         super().clean()
         
+        # Si no hay alumno asignado aún (caso de formulario de alumno), saltar validaciones
+        if not self.alumno_id:
+            return
+        
         # Verificar alumno activo
         if not self.alumno.activo:
             raise ValidationError('El alumno no está activo.')
         
         # Verificar materia activa
-        if not self.materia.activa:
+        if self.materia and not self.materia.activa:
             raise ValidationError('⚠️ La materia no está activa y no acepta inscripciones.')
         
         # Verificar inscripción duplicada (solo si es nueva inscripción)
